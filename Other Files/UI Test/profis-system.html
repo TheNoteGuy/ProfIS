@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProfIS - Professoren-Informationssystem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #161616;
+            color: #e4e4e4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 16px;
+            position: relative;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .menu-dropdown {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 180px;
+            position: relative;
+        }
+
+        .menu-dropdown:hover {
+            background-color: #2a2a2a;
+            border-color: #4a9eff;
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .menu-icon span {
+            display: block;
+            height: 3px;
+            background-color: #e4e4e4;
+            border-radius: 2px;
+        }
+
+        .dropdown-label {
+            font-size: 14px;
+            color: #b8b8b8;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 8px;
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            min-width: 220px;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .dropdown-content.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #b8b8b8;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: #2a2a2a;
+            color: #4a9eff;
+        }
+
+        .action-button {
+            background-color: #4a9eff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-button:hover {
+            background-color: #5aa9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+        }
+
+        .action-button svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.5;
+        }
+
+        .global-search {
+            flex: 1;
+            max-width: 400px;
+            background-color: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #e4e4e4;
+            transition: all 0.2s;
+        }
+
+        .global-search::placeholder {
+            color: #666;
+        }
+
+        .global-search:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background-color: #1a1a1a;
+        }
+
+        .quick-stats {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #b8b8b8;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            color: #4a9eff;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .thesis-details {
+            flex: 1;
+            background-color: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .thesis-details.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .thesis-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #4a9eff, #6bb5ff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .detail-header-info {
+            flex: 1;
+        }
+
+        .detail-header-info h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e4e4e4;
+            margin-bottom: 4px;
+        }
+
+        .detail-header-info p {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-button {
+            width: 36px;
+            height: 36px;
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-button:hover {
+            background-color: #2a2a2a;
+            border-color: #4a9eff;
+        }
+
+        .icon-button svg {
+            width: 18px;
+            height: 18px;
+            stroke: #b8b8b8;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .icon-button:hover svg {
+            stroke: #4a9eff;
+        }
+
+        .icon-button.delete:hover {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .icon-button.delete:hover svg {
+            stroke: #ffffff;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .detail-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .detail-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: #e4e4e4;
+            background-color: #252525;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+
+        .detail-section {
+            grid-column: 1 / -1;
+            margin-top: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e4e4e4;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .grades-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .grade-item {
+            background-color: #252525;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .grade-label {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .grade-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #4a9eff;
+        }
+
+        .sws-display {
+            background-color: #1a3a5a;
+            border: 1px solid #4a9eff;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .sws-label {
+            font-size: 13px;
+            color: #4a9eff;
+            margin-bottom: 8px;
+        }
+
+        .sws-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #4a9eff;
+        }
+
+        /* Sidebar */
+        .thesis-list-sidebar {
+            width: 320px;
+            background-color: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e4e4e4;
+        }
+
+        .sidebar-count {
+            font-size: 13px;
+            color: #888;
+            background-color: #252525;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .search-box {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #e4e4e4;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .search-box::placeholder {
+            color: #666;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background-color: #1a1a1a;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: #b8b8b8;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip:hover {
+            background-color: #2a2a2a;
+            border-color: #4a4a4a;
+        }
+
+        .filter-chip.active {
+            background-color: #1a3a5a;
+            border-color: #4a9eff;
+            color: #4a9eff;
+        }
+
+        .thesis-item {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .thesis-item:hover {
+            background-color: #2a2a2a;
+            border-color: #4a4a4a;
+        }
+
+        .thesis-item.active {
+            background-color: #1a3a5a;
+            border-color: #4a9eff;
+        }
+
+        .thesis-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .thesis-type-badge {
+            background-color: #4a9eff;
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .thesis-semester {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .thesis-item-student {
+            font-size: 14px;
+            font-weight: 500;
+            color: #e4e4e4;
+            margin-bottom: 4px;
+        }
+
+        .thesis-item-title {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .settings-button {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 20px;
+            color: #b8b8b8;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .settings-button:hover {
+            background-color: #2a2a2a;
+            border-color: #4a9eff;
+            color: #4a9eff;
+        }
+
+        .status-bar {
+            flex: 1;
+            background-color: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: #888;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e4e4e4;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .modal-close svg {
+            width: 16px;
+            height: 16px;
+            stroke: #b8b8b8;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .modal-close:hover svg {
+            stroke: #ffffff;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 13px;
+            color: #b8b8b8;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select {
+            background-color: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #e4e4e4;
+            transition: all 0.2s;
+        }
+
+        .form-input::placeholder {
+            color: #666;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background-color: #1a1a1a;
+        }
+
+        .form-input:hover, .form-select:hover {
+            border-color: #4a4a4a;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-button {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .modal-button.cancel {
+            background-color: #252525;
+            border: 1px solid #333;
+            color: #b8b8b8;
+        }
+
+        .modal-button.cancel:hover {
+            background-color: #2a2a2a;
+            border-color: #4a4a4a;
+        }
+
+        .modal-button.primary {
+            background-color: #4a9eff;
+            color: #ffffff;
+        }
+
+        .modal-button.primary:hover {
+            background-color: #5aa9ff;
+        }
+
+        /* Window Controls */
+        .window-controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .window-control {
+            width: 32px;
+            height: 32px;
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .window-control:hover {
+            background-color: #2a2a2a;
+        }
+
+        .window-control:last-child:hover {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .window-control svg {
+            width: 16px;
+            height: 16px;
+            stroke: #b8b8b8;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .window-control:last-child:hover svg {
+            stroke: #ffffff;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="window-controls">
+        <div class="window-control" onclick="alert('Minimieren')">
+            <svg viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        </div>
+        <div class="window-control" onclick="alert('Maximieren')">
+            <svg viewBox="0 0 24 24">
+                <rect x="6" y="6" width="12" height="12"/>
+            </svg>
+        </div>
+        <div class="window-control" onclick="alert('Schließen')">
+            <svg viewBox="0 0 24 24">
+                <line x1="6" y1="6" x2="18" y2="18"/>
+                <line x1="18" y1="6" x2="6" y2="18"/>
+            </svg>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <div class="menu-dropdown" onclick="toggleDropdown()">
+            <div class="menu-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span class="dropdown-label">Datei</span>
+            <div class="dropdown-content" id="menuDropdown">
+                <div class="dropdown-item" onclick="event.stopPropagation(); exportData()">Exportieren (JSON)</div>
+                <div class="dropdown-item" onclick="event.stopPropagation(); document.getElementById('importFile').click()">Importieren (JSON)</div>
+                <div class="dropdown-item" onclick="event.stopPropagation(); openSettings()">Einstellungen</div>
+            </div>
+        </div>
+        
+        <button class="action-button" onclick="openAddThesisModal()">
+            <svg viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Neue Arbeit
+        </button>
+
+        <input type="text" class="global-search" placeholder="Arbeiten durchsuchen..." oninput="filterTheses(this.value)">
+
+        <div class="quick-stats">
+            <div class="stat-item">
+                <span>Arbeiten:</span>
+                <span class="stat-value" id="totalCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span>SWS:</span>
+                <span class="stat-value" id="swsTotal">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="thesis-details empty" id="thesisDetails">
+            Wählen Sie eine Arbeit aus der Liste aus
+        </div>
+        
+        <div class="thesis-list-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Arbeiten</div>
+                <div class="sidebar-count" id="visibleCount">0</div>
+            </div>
+            
+            <div class="filter-chips" id="filterChips"></div>
+            
+            <div id="thesisList"></div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <button class="settings-button" onclick="openSettings()">Einstellungen</button>
+        
+        <div class="status-bar">
+            <div class="status-indicator"></div>
+            <span class="status-text" id="statusText">Bereit | Zuletzt gespeichert: Heute, 14:32 Uhr</span>
+        </div>
+    </div>
+
+    <!-- Add Thesis Modal -->
+    <div class="modal-overlay" id="addThesisModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Neue Arbeit anlegen</div>
+                <div class="modal-close" onclick="closeAddThesisModal()">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="modal-body">
+                <form id="addThesisForm" onsubmit="submitNewThesis(event)">
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label class="form-label">Typ *</label>
+                            <select class="form-select" id="thesisType" required>
+                                <option value="">Bitte wählen</option>
+                                <option value="Bachelor">Bachelorarbeit</option>
+                                <option value="Master">Masterarbeit</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Studiengang *</label>
+                            <select class="form-select" id="studyProgram" required>
+                                <option value="">Bitte wählen</option>
+                                <option value="Wirtschaftsinformatik">Wirtschaftsinformatik</option>
+                                <option value="Software-Technologie">Software-Technologie</option>
+                                <option value="Informatik">Informatik</option>
+                                <option value="Data Science">Data Science</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="form-label">Vorname Student *</label>
+                            <input type="text" class="form-input" id="studentFirstName" required placeholder="Max">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Nachname Student *</label>
+                            <input type="text" class="form-input" id="studentLastName" required placeholder="Mustermann">
+                        </div>
+                        
+                        <div class="form-field full-width">
+                            <label class="form-label">Titel der Arbeit *</label>
+                            <input type="text" class="form-input" id="thesisTitle" required placeholder="Entwicklung eines...">
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="form-label">Referent *</label>
+                            <input type="text" class="form-input" id="referent" required placeholder="Prof. Dr. Müller">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Korreferent *</label>
+                            <input type="text" class="form-input" id="coreferent" required placeholder="Prof. Dr. Schmidt">
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="form-label">Startdatum *</label>
+                            <input type="date" class="form-input" id="startDate" required>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Abgabedatum *</label>
+                            <input type="date" class="form-input" id="submissionDate" required>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="form-label">Semester *</label>
+                            <select class="form-select" id="semester" required>
+                                <option value="">Bitte wählen</option>
+                                <option value="WS 2024/25">WS 2024/25</option>
+                                <option value="SS 2025">SS 2025</option>
+                                <option value="WS 2025/26">WS 2025/26</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Prüfungsordnung *</label>
+                            <input type="text" class="form-input" id="examRegulation" required placeholder="PO 2020">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-button cancel" onclick="closeAddThesisModal()">Abbrechen</button>
+                <button class="modal-button primary" onclick="document.getElementById('addThesisForm').requestSubmit()">Anlegen</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="importFile" class="hidden-input" accept=".json" onchange="importData(event)">
+
+    <script>
+        // Sample thesis data according to ProfIS SRS
+        let theses = [
+            {
+                id: 1,
+                type: "Bachelor",
+                studyProgram: "Wirtschaftsinformatik",
+                studentFirstName: "Anna",
+                studentLastName: "Schmidt",
+                title: "Entwicklung eines Webshop-Systems mit React und Node.js",
+                referent: "Prof. Dr. Grüne",
+                coreferent: "Prof. Dr. Müller",
+                startDate: "2024-10-01",
+                submissionDate: "2025-01-15",
+                colloquiumDate: "2025-02-01",
+                semester: "WS 2024/25",
+                examRegulation: "PO 2020",
+                grades: {
+                    thesisReferent: "1,3",
+                    thesisCoreferent: "1,7",
+                    colloquiumReferent: "1,7",
+                    colloquiumCoreferent: "2,0"
+                },
+                swsReferent: 0.2,
+                swsCoreferent: 0.1
+            },
+            {
+                id: 2,
+                type: "Master",
+                studyProgram: "Software-Technologie",
+                studentFirstName: "Max",
+                studentLastName: "Weber",
+                title: "Machine Learning Ansätze zur Vorhersage von Softwarefehlern",
+                referent: "Prof. Dr. Grüne",
+                coreferent: "Dr. Klein",
+                startDate: "2024-09-01",
+                submissionDate: "2025-03-01",
+                colloquiumDate: "2025-03-20",
+                semester: "WS 2024/25",
+                examRegulation: "PO 2021",
+                grades: {
+                    thesisReferent: "1,0",
+                    thesisCoreferent: "1,3",
+                    colloquiumReferent: "1,0",
+                    colloquiumCoreferent: "1,3"
+                },
+                swsReferent: 0.2,
+                swsCoreferent: 0.15
+            },
+            {
+                id: 3,
+                type: "Bachelor",
+                studyProgram: "Informatik",
+                studentFirstName: "Lisa",
+                studentLastName: "Hoffmann",
+                title: "Implementierung eines Chatbots mit Natural Language Processing",
+                referent: "Prof. Dr. Meyer",
+                coreferent: "Prof. Dr. Grüne",
+                startDate: "2024-11-01",
+                submissionDate: "2025-02-28",
+                semester: "WS 2024/25",
+                examRegulation: "PO 2020",
+                grades: {},
+                swsReferent: 0,
+                swsCoreferent: 0.1
+            },
+            {
+                id: 4,
+                type: "Master",
+                studyProgram: "Data Science",
+                studentFirstName: "Tom",
+                studentLastName: "Fischer",
+                title: "Big Data Analytics für Smart City Anwendungen",
+                referent: "Prof. Dr. Grüne",
+                coreferent: "Prof. Dr. Wagner",
+                startDate: "2024-10-15",
+                submissionDate: "2025-04-15",
+                semester: "SS 2025",
+                examRegulation: "PO 2021",
+                grades: {},
+                swsReferent: 0.2,
+                swsCoreferent: 0.15
+            },
+            {
+                id: 5,
+                type: "Bachelor",
+                studyProgram: "Wirtschaftsinformatik",
+                studentFirstName: "Sarah",
+                studentLastName: "Becker",
+                title: "Digitale Transformation in mittelständischen Unternehmen",
+                referent: "Prof. Dr. Schulz",
+                coreferent: "Prof. Dr. Grüne",
+                startDate: "2024-09-15",
+                submissionDate: "2024-12-15",
+                colloquiumDate: "2025-01-10",
+                semester: "WS 2024/25",
+                examRegulation: "PO 2020",
+                grades: {
+                    thesisReferent: "2,0",
+                    thesisCoreferent: "1,7",
+                    colloquiumReferent: "2,3",
+                    colloquiumCoreferent: "2,0"
+                },
+                swsReferent: 0,
+                swsCoreferent: 0.1
+            }
+        ];
+
+        let selectedThesis = null;
+        let filteredTheses = [...theses];
+        let activeTypeFilter = null;
+        let nextThesisId = 6;
+
+        // Initialize
+        function init() {
+            renderTypeFilters();
+            renderThesisList(filteredTheses);
+            updateStats();
+        }
+
+        // Render type filters
+        function renderTypeFilters() {
+            const types = [...new Set(theses.map(t => t.type))].sort();
+            const filterContainer = document.getElementById('filterChips');
+            
+            filterContainer.innerHTML = '<div class="filter-chip active" onclick="filterByType(null, event)">Alle</div>';
+            
+            types.forEach(type => {
+                const chip = document.createElement('div');
+                chip.className = 'filter-chip';
+                chip.textContent = type;
+                chip.onclick = (e) => filterByType(type, e);
+                filterContainer.appendChild(chip);
+            });
+        }
+
+        // Filter by type
+        function filterByType(type, event) {
+            activeTypeFilter = type;
+            
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            if (type === null) {
+                filteredTheses = [...theses];
+            } else {
+                filteredTheses = theses.filter(t => t.type === type);
+            }
+            
+            renderThesisList(filteredTheses);
+            updateStats();
+        }
+
+        // Render thesis list
+        function renderThesisList(thesesToShow) {
+            const listContainer = document.getElementById('thesisList');
+            listContainer.innerHTML = '';
+            
+            thesesToShow.forEach(thesis => {
+                const item = document.createElement('div');
+                item.className = 'thesis-item';
+                if (selectedThesis && selectedThesis.id === thesis.id) {
+                    item.classList.add('active');
+                }
+                
+                item.innerHTML = `
+                    <div class="thesis-item-header">
+                        <div class="thesis-type-badge">${thesis.type}</div>
+                        <div class="thesis-semester">${thesis.semester}</div>
+                    </div>
+                    <div class="thesis-item-student">${thesis.studentFirstName} ${thesis.studentLastName}</div>
+                    <div class="thesis-item-title">${thesis.title}</div>
+                `;
+                
+                item.onclick = () => selectThesis(thesis);
+                listContainer.appendChild(item);
+            });
+        }
+
+        // Select thesis
+        function selectThesis(thesis) {
+            selectedThesis = thesis;
+            renderThesisList(filteredTheses);
+            displayThesisDetails(thesis);
+        }
+
+        // Display thesis details
+        function displayThesisDetails(thesis) {
+            const detailsContainer = document.getElementById('thesisDetails');
+            detailsContainer.className = 'thesis-details';
+            
+            const hasGrades = thesis.grades && Object.keys(thesis.grades).length > 0;
+            const finalGrade = hasGrades ? calculateFinalGrade(thesis.grades) : '-';
+            
+            let gradesHTML = '';
+            if (hasGrades) {
+                gradesHTML = `
+                    <div class="detail-section">
+                        <div class="section-title">Noten</div>
+                        <div class="grades-grid">
+                            <div class="grade-item">
+                                <div class="grade-label">Arbeit (Referent)</div>
+                                <div class="grade-value">${thesis.grades.thesisReferent || '-'}</div>
+                            </div>
+                            <div class="grade-item">
+                                <div class="grade-label">Arbeit (Korreferent)</div>
+                                <div class="grade-value">${thesis.grades.thesisCoreferent || '-'}</div>
+                            </div>
+                            <div class="grade-item">
+                                <div class="grade-label">Kolloquium (Referent)</div>
+                                <div class="grade-value">${thesis.grades.colloquiumReferent || '-'}</div>
+                            </div>
+                            <div class="grade-item">
+                                <div class="grade-label">Kolloquium (Korreferent)</div>
+                                <div class="grade-value">${thesis.grades.colloquiumCoreferent || '-'}</div>
+                            </div>
+                        </div>
+                        <div class="sws-display">
+                            <div class="sws-label">Gesamtnote</div>
+                            <div class="sws-value">${finalGrade}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            detailsContainer.innerHTML = `
+                <div class="detail-header">
+                    <div class="thesis-icon">${thesis.type === 'Bachelor' ? 'B' : 'M'}</div>
+                    <div class="detail-header-info">
+                        <h2>${thesis.studentFirstName} ${thesis.studentLastName}</h2>
+                        <p>${thesis.type}arbeit · ${thesis.studyProgram}</p>
+                    </div>
+                    <div class="detail-actions">
+                        <div class="icon-button" onclick="editThesis()" title="Bearbeiten">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </div>
+                        <div class="icon-button delete" onclick="deleteThesis()" title="Löschen">
+                            <svg viewBox="0 0 24 24">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-grid">
+                    <div class="detail-field full-width">
+                        <div class="detail-label">Titel</div>
+                        <div class="detail-value">${thesis.title}</div>
+                    </div>
+                    
+                    <div class="detail-field">
+                        <div class="detail-label">Referent</div>
+                        <div class="detail-value">${thesis.referent}</div>
+                    </div>
+                    
+                    <div class="detail-field">
+                        <div class="detail-label">Korreferent</div>
+                        <div class="detail-value">${thesis.coreferent}</div>
+                    </div>
+                    
+                    <div class="detail-field">
+                        <div class="detail-label">Startdatum</div>
+                        <div class="detail-value">${formatDate(thesis.startDate)}</div>
+                    </div>
+                    
+                    <div class="detail-field">
+                        <div class="detail-label">Abgabedatum</div>
+                        <div class="detail-value">${formatDate(thesis.submissionDate)}</div>
+                    </div>
+                    
+                    <div class="detail-field">
+                        <div class="detail-label">Kolloquium</div>
+                        <div class="detail-value">${thesis.colloquiumDate ? formatDate(thesis.colloquiumDate) : 'Noch nicht festgelegt'}</div>
+                    </div>
+                    
+                    <div class="detail-field">
+                        <div class="detail-label">Semester</div>
+                        <div class="detail-value">${thesis.semester}</div>
+                    </div>
+                    
+                    <div class="detail-field">
+                        <div class="detail-label">Prüfungsordnung</div>
+                        <div class="detail-value">${thesis.examRegulation}</div>
+                    </div>
+                    
+                    <div class="detail-field">
+                        <div class="detail-label">Studiengang</div>
+                        <div class="detail-value">${thesis.studyProgram}</div>
+                    </div>
+                    
+                    ${gradesHTML}
+                    
+                    <div class="detail-section">
+                        <div class="section-title">SWS-Anrechnung</div>
+                        <div class="grades-grid">
+                            <div class="grade-item">
+                                <div class="grade-label">Referent</div>
+                                <div class="grade-value">${thesis.swsReferent} SWS</div>
+                            </div>
+                            <div class="grade-item">
+                                <div class="grade-label">Korreferent</div>
+                                <div class="grade-value">${thesis.swsCoreferent} SWS</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Calculate final grade
+        function calculateFinalGrade(grades) {
+            if (!grades.thesisReferent || !grades.thesisCoreferent) return '-';
+            
+            const tr = parseFloat(grades.thesisReferent.replace(',', '.'));
+            const tc = parseFloat(grades.thesisCoreferent.replace(',', '.'));
+            const cr = grades.colloquiumReferent ? parseFloat(grades.colloquiumReferent.replace(',', '.')) : null;
+            const cc = grades.colloquiumCoreferent ? parseFloat(grades.colloquiumCoreferent.replace(',', '.')) : null;
+            
+            let thesisGrade = (tr + tc) / 2;
+            
+            if (cr && cc) {
+                const colloquiumGrade = (cr + cc) / 2;
+                const finalGrade = (thesisGrade * 0.7 + colloquiumGrade * 0.3);
+                return finalGrade.toFixed(1).replace('.', ',');
+            }
+            
+            return thesisGrade.toFixed(1).replace('.', ',');
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        // Filter theses
+        function filterTheses(searchTerm) {
+            let filtered = theses;
+            
+            if (activeTypeFilter !== null) {
+                filtered = filtered.filter(t => t.type === activeTypeFilter);
+            }
+            
+            if (searchTerm) {
+                filtered = filtered.filter(thesis => {
+                    const studentName = `${thesis.studentFirstName} ${thesis.studentLastName}`.toLowerCase();
+                    const title = thesis.title.toLowerCase();
+                    const search = searchTerm.toLowerCase();
+                    return studentName.includes(search) || title.includes(search);
+                });
+            }
+            
+            filteredTheses = filtered;
+            renderThesisList(filtered);
+            updateStats();
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalCount').textContent = theses.length;
+            
+            const totalSws = theses.reduce((sum, thesis) => {
+                return sum + thesis.swsReferent + thesis.swsCoreferent;
+            }, 0);
+            document.getElementById('swsTotal').textContent = totalSws.toFixed(1);
+            
+            document.getElementById('visibleCount').textContent = filteredTheses.length;
+        }
+
+        // Open add thesis modal
+        function openAddThesisModal() {
+            document.getElementById('addThesisModal').classList.add('active');
+        }
+
+        // Close add thesis modal
+        function closeAddThesisModal() {
+            document.getElementById('addThesisModal').classList.remove('active');
+            document.getElementById('addThesisForm').reset();
+        }
+
+        // Submit new thesis
+        function submitNewThesis(event) {
+            event.preventDefault();
+            
+            const newThesis = {
+                id: nextThesisId++,
+                type: document.getElementById('thesisType').value,
+                studyProgram: document.getElementById('studyProgram').value,
+                studentFirstName: document.getElementById('studentFirstName').value,
+                studentLastName: document.getElementById('studentLastName').value,
+                title: document.getElementById('thesisTitle').value,
+                referent: document.getElementById('referent').value,
+                coreferent: document.getElementById('coreferent').value,
+                startDate: document.getElementById('startDate').value,
+                submissionDate: document.getElementById('submissionDate').value,
+                semester: document.getElementById('semester').value,
+                examRegulation: document.getElementById('examRegulation').value,
+                grades: {},
+                swsReferent: 0.2,
+                swsCoreferent: 0.1
+            };
+            
+            theses.push(newThesis);
+            filteredTheses = [...theses];
+            
+            renderTypeFilters();
+            renderThesisList(filteredTheses);
+            updateStats();
+            
+            closeAddThesisModal();
+            updateStatus('Neue Arbeit angelegt');
+            selectThesis(newThesis);
+        }
+
+        // Edit thesis
+        function editThesis() {
+            if (selectedThesis) {
+                alert(`Bearbeiten-Dialog für "${selectedThesis.title}" würde hier geöffnet werden...`);
+            }
+        }
+
+        // Delete thesis
+        function deleteThesis() {
+            if (selectedThesis) {
+                const confirmed = confirm(`Möchten Sie die Arbeit von ${selectedThesis.studentFirstName} ${selectedThesis.studentLastName} wirklich löschen?`);
+                if (confirmed) {
+                    theses = theses.filter(t => t.id !== selectedThesis.id);
+                    filteredTheses = filteredTheses.filter(t => t.id !== selectedThesis.id);
+                    
+                    renderTypeFilters();
+                    renderThesisList(filteredTheses);
+                    updateStats();
+                    
+                    const detailsContainer = document.getElementById('thesisDetails');
+                    detailsContainer.className = 'thesis-details empty';
+                    detailsContainer.textContent = 'Wählen Sie eine Arbeit aus der Liste aus';
+                    
+                    selectedThesis = null;
+                    updateStatus('Arbeit gelöscht');
+                }
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const dataStr = JSON.stringify(theses, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `profis_arbeiten_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            updateStatus('Daten exportiert');
+        }
+
+        // Import data
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedTheses = JSON.parse(e.target.result);
+                    
+                    if (Array.isArray(importedTheses)) {
+                        theses = importedTheses;
+                        filteredTheses = [...theses];
+                        
+                        const maxId = Math.max(...theses.map(t => t.id || 0));
+                        nextThesisId = maxId + 1;
+                        
+                        renderTypeFilters();
+                        renderThesisList(filteredTheses);
+                        updateStats();
+                        
+                        updateStatus(`${theses.length} Arbeiten importiert`);
+                    } else {
+                        alert('Ungültiges Dateiformat. Bitte eine gültige JSON-Datei auswählen.');
+                    }
+                } catch (error) {
+                    alert('Fehler beim Importieren der Datei: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            event.target.value = '';
+        }
+
+        // Open settings
+        function openSettings() {
+            alert('Einstellungs-Dialog würde hier geöffnet werden...\n\nHier könnten konfiguriert werden:\n- Semester-Zeiträume\n- Studiengänge\n- Prüfungsordnungen\n- SWS-Verrechnungssätze');
+        }
+
+        // Toggle dropdown
+        function toggleDropdown() {
+            const dropdown = document.getElementById('menuDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        // Update status
+        function updateStatus(message) {
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} Uhr`;
+            document.getElementById('statusText').textContent = `${message} | Zuletzt aktualisiert: Heute, ${timeStr}`;
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.menu-dropdown');
+            const dropdownContent = document.getElementById('menuDropdown');
+            
+            if (!dropdown.contains(event.target)) {
+                dropdownContent.classList.remove('active');
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('addThesisModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeAddThesisModal();
+            }
+        });
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
