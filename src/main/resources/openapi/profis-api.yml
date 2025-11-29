@@ -1,0 +1,1268 @@
+openapi: 3.0.3
+info:
+  title: ProfIS API
+  description: API for managing students, theses, professors, programs, and reports at TH Mittelhessen
+  version: 1.0.0
+  contact:
+    name: ProfIS Development Team
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server
+
+tags:
+  - name: Students
+    description: Student management endpoints
+  - name: Theses
+    description: Thesis management endpoints
+  - name: Professors
+    description: Professor management endpoints
+  - name: Programs
+    description: Study program management endpoints
+  - name: Semesters
+    description: Semester management endpoints
+  - name: Reports
+    description: Reporting and analytics endpoints
+  - name: Import/Export
+    description: Data import and export endpoints
+
+paths:
+  # ==================== STUDENTS ====================
+  /students:
+    get:
+      tags:
+        - Students
+      summary: List all students
+      description: Retrieve a paginated list of students with optional search
+      operationId: listStudents
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          required: false
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: search
+          in: query
+          description: Search in name/matriculation number
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentPageResponse'
+
+    post:
+      tags:
+        - Students
+      summary: Create a new student
+      description: Create a new student record
+      operationId: createStudent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudentRequest'
+      responses:
+        '201':
+          description: Student created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Matriculation number or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /students/{id}:
+    get:
+      tags:
+        - Students
+      summary: Get student by ID
+      description: Retrieve a single student with their theses
+      operationId: getStudentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentDetailResponse'
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Students
+      summary: Update student
+      description: Update an existing student record
+      operationId: updateStudent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudentRequest'
+      responses:
+        '200':
+          description: Student updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentDetailResponse'
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Students
+      summary: Delete student
+      description: Delete a student record
+      operationId: deleteStudent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Student deleted successfully
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Student has active theses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==================== THESES ====================
+  /theses:
+    get:
+      tags:
+        - Theses
+      summary: List all theses
+      description: Retrieve a paginated list of theses with optional filters
+      operationId: listTheses
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ThesisStatus'
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/ThesisType'
+        - name: semesterId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: supervisorId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: studentId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThesisPageResponse'
+
+    post:
+      tags:
+        - Theses
+      summary: Create a new thesis
+      description: Create a new thesis record
+      operationId: createThesis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateThesisRequest'
+      responses:
+        '201':
+          description: Thesis created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThesisDetailResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Student already has an active thesis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /theses/{id}:
+    get:
+      tags:
+        - Theses
+      summary: Get thesis by ID
+      description: Retrieve detailed thesis information
+      operationId: getThesisById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThesisDetailResponse'
+        '404':
+          description: Thesis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Theses
+      summary: Update thesis
+      description: Update an existing thesis
+      operationId: updateThesis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateThesisRequest'
+      responses:
+        '200':
+          description: Thesis updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThesisDetailResponse'
+        '404':
+          description: Thesis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Theses
+      summary: Delete thesis
+      description: Delete a thesis record
+      operationId: deleteThesis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Thesis deleted successfully
+        '404':
+          description: Thesis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /theses/{id}/grades:
+    put:
+      tags:
+        - Theses
+      summary: Update thesis grades
+      description: Update grades for a thesis
+      operationId: updateThesisGrades
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGradesRequest'
+      responses:
+        '200':
+          description: Grades updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradesResponse'
+        '400':
+          description: Invalid grade values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ==================== PROFESSORS ====================
+  /professors:
+    get:
+      tags:
+        - Professors
+      summary: List all professors
+      description: Retrieve a list of all professors
+      operationId: listProfessors
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessorListResponse'
+
+    post:
+      tags:
+        - Professors
+      summary: Create a new professor
+      description: Create a new professor record
+      operationId: createProfessor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProfessorRequest'
+      responses:
+        '201':
+          description: Professor created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfessorResponse'
+
+  # ==================== PROGRAMS ====================
+  /programs:
+    get:
+      tags:
+        - Programs
+      summary: List all programs
+      description: Retrieve a list of all study programs
+      operationId: listPrograms
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramListResponse'
+
+    post:
+      tags:
+        - Programs
+      summary: Create a new program
+      description: Create a new study program
+      operationId: createProgram
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProgramRequest'
+      responses:
+        '201':
+          description: Program created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramResponse'
+
+  # ==================== SEMESTERS ====================
+  /semesters:
+    get:
+      tags:
+        - Semesters
+      summary: List all semesters
+      description: Retrieve a list of all semesters
+      operationId: listSemesters
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemesterListResponse'
+
+    post:
+      tags:
+        - Semesters
+      summary: Create a new semester
+      description: Create a new semester
+      operationId: createSemester
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSemesterRequest'
+      responses:
+        '201':
+          description: Semester created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemesterResponse'
+
+  # ==================== REPORTS ====================
+  /reports/theses-by-professor:
+    get:
+      tags:
+        - Reports
+      summary: Get theses by professor
+      description: Retrieve thesis statistics for a specific professor
+      operationId: getThesesByProfessor
+      parameters:
+        - name: professorId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: semesterId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThesesByProfessorReport'
+
+  /reports/sws-calculation:
+    get:
+      tags:
+        - Reports
+      summary: Calculate SWS for professor
+      description: Calculate semester hours (SWS) for a professor
+      operationId: calculateSws
+      parameters:
+        - name: professorId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: semesterId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwsCalculationReport'
+
+  # ==================== IMPORT/EXPORT ====================
+  /import/excel:
+    post:
+      tags:
+        - Import/Export
+      summary: Import data from Excel
+      description: Import students, theses, or professors from Excel file
+      operationId: importExcel
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                sheetName:
+                  type: string
+      responses:
+        '200':
+          description: Import completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResponse'
+
+  /export/excel:
+    get:
+      tags:
+        - Import/Export
+      summary: Export data to Excel
+      description: Export students, theses, or professors to Excel file
+      operationId: exportExcel
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [students, theses, professors]
+        - name: semesterId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Excel file generated
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+# ==================== COMPONENTS ====================
+components:
+  schemas:
+    # Enums
+    ThesisStatus:
+      type: string
+      enum:
+        - PLANNED
+        - IN_PROGRESS
+        - SUBMITTED
+        - GRADED
+        - COMPLETED
+
+    ThesisType:
+      type: string
+      enum:
+        - BACHELOR
+        - MASTER
+
+    DegreeType:
+      type: string
+      enum:
+        - BACHELOR
+        - MASTER
+
+    SemesterType:
+      type: string
+      enum:
+        - WINTER
+        - SUMMER
+
+    SupervisorRole:
+      type: string
+      enum:
+        - SUPERVISOR
+        - CO_SUPERVISOR
+
+    # Student Schemas
+    CreateStudentRequest:
+      type: object
+      required:
+        - matriculationNumber
+        - firstName
+        - lastName
+        - email
+        - programId
+      properties:
+        matriculationNumber:
+          type: string
+          pattern: '^\d{6}$'
+          example: "789012"
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Anna"
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Schmidt"
+        email:
+          type: string
+          format: email
+          example: "anna.schmidt@student.th-mittelhessen.de"
+        programId:
+          type: integer
+          format: int64
+          example: 2
+
+    StudentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        matriculationNumber:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        programId:
+          type: integer
+          format: int64
+        programName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    StudentDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/StudentResponse'
+        - type: object
+          properties:
+            theses:
+              type: array
+              items:
+                $ref: '#/components/schemas/ThesisSummary'
+            updatedAt:
+              type: string
+              format: date-time
+
+    StudentPageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentResponse'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        number:
+          type: integer
+        size:
+          type: integer
+
+    # Thesis Schemas
+    CreateThesisRequest:
+      type: object
+      required:
+        - title
+        - type
+        - studentId
+        - supervisorId
+        - programId
+        - startDate
+        - submissionDate
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 200
+        type:
+          $ref: '#/components/schemas/ThesisType'
+        abstract:
+          type: string
+        studentId:
+          type: integer
+          format: int64
+        supervisorId:
+          type: integer
+          format: int64
+        coSupervisorId:
+          type: integer
+          format: int64
+        programId:
+          type: integer
+          format: int64
+        startDate:
+          type: string
+          format: date
+        submissionDate:
+          type: string
+          format: date
+        colloquiumDate:
+          type: string
+          format: date
+
+    ThesisSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        type:
+          $ref: '#/components/schemas/ThesisType'
+        status:
+          $ref: '#/components/schemas/ThesisStatus'
+
+    ThesisResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        type:
+          $ref: '#/components/schemas/ThesisType'
+        status:
+          $ref: '#/components/schemas/ThesisStatus'
+        student:
+          $ref: '#/components/schemas/PersonSummary'
+        supervisor:
+          $ref: '#/components/schemas/ProfessorSummary'
+        coSupervisor:
+          $ref: '#/components/schemas/ProfessorSummary'
+        program:
+          $ref: '#/components/schemas/ProgramSummary'
+        startDate:
+          type: string
+          format: date
+        submissionDate:
+          type: string
+          format: date
+        colloquiumDate:
+          type: string
+          format: date
+        semester:
+          $ref: '#/components/schemas/SemesterSummary'
+        swsSupervisor:
+          type: number
+          format: double
+        swsCoSupervisor:
+          type: number
+          format: double
+        createdAt:
+          type: string
+          format: date-time
+
+    ThesisDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ThesisResponse'
+        - type: object
+          properties:
+            abstract:
+              type: string
+            grades:
+              $ref: '#/components/schemas/GradesResponse'
+            updatedAt:
+              type: string
+              format: date-time
+
+    ThesisPageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThesisResponse'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        number:
+          type: integer
+        size:
+          type: integer
+
+    UpdateGradesRequest:
+      type: object
+      properties:
+        supervisorThesisGrade:
+          type: number
+          format: double
+          minimum: 1.0
+          maximum: 5.0
+          enum: [1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0]
+        supervisorColloquiumGrade:
+          type: number
+          format: double
+          minimum: 1.0
+          maximum: 5.0
+          enum: [1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0]
+        coSupervisorThesisGrade:
+          type: number
+          format: double
+          minimum: 1.0
+          maximum: 5.0
+          enum: [1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0]
+        coSupervisorColloquiumGrade:
+          type: number
+          format: double
+          minimum: 1.0
+          maximum: 5.0
+          enum: [1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0]
+
+    GradesResponse:
+      type: object
+      properties:
+        supervisorThesisGrade:
+          type: number
+          format: double
+        supervisorColloquiumGrade:
+          type: number
+          format: double
+        coSupervisorThesisGrade:
+          type: number
+          format: double
+        coSupervisorColloquiumGrade:
+          type: number
+          format: double
+        finalGrade:
+          type: number
+          format: double
+
+    # Professor Schemas
+    CreateProfessorRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        title:
+          type: string
+          example: "Prof. Dr."
+        email:
+          type: string
+          format: email
+        isExternal:
+          type: boolean
+          default: false
+
+    ProfessorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        firstName:
+          type: string
+        lastName:
+          type: string
+        title:
+          type: string
+        email:
+          type: string
+        isExternal:
+          type: boolean
+        activeThesesCount:
+          type: integer
+        totalSwsCurrentSemester:
+          type: number
+          format: double
+
+    ProfessorSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          $ref: '#/components/schemas/SupervisorRole'
+
+    ProfessorListResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfessorResponse'
+
+    # Program Schemas
+    CreateProgramRequest:
+      type: object
+      required:
+        - name
+        - degree
+        - examinationRegulation
+      properties:
+        name:
+          type: string
+        degree:
+          $ref: '#/components/schemas/DegreeType'
+        examinationRegulation:
+          type: string
+        swsRateSupervisor:
+          type: number
+          format: double
+          default: 0.2
+        swsRateCoSupervisor:
+          type: number
+          format: double
+          default: 0.1
+        isActive:
+          type: boolean
+          default: true
+
+    ProgramResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        degree:
+          $ref: '#/components/schemas/DegreeType'
+        examinationRegulation:
+          type: string
+        swsRateSupervisor:
+          type: number
+          format: double
+        swsRateCoSupervisor:
+          type: number
+          format: double
+        isActive:
+          type: boolean
+
+    ProgramSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        examinationRegulation:
+          type: string
+
+    ProgramListResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramResponse'
+
+    # Semester Schemas
+    CreateSemesterRequest:
+      type: object
+      required:
+        - name
+        - type
+        - startDate
+        - endDate
+      properties:
+        name:
+          type: string
+          example: "WS 2025/26"
+        type:
+          $ref: '#/components/schemas/SemesterType'
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+
+    SemesterResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/SemesterType'
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        isCurrent:
+          type: boolean
+
+    SemesterSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+
+    SemesterListResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SemesterResponse'
+
+    # Report Schemas
+    ThesesByProfessorReport:
+      type: object
+      properties:
+        professorId:
+          type: integer
+          format: int64
+        professorName:
+          type: string
+        semesterId:
+          type: integer
+          format: int64
+        semesterName:
+          type: string
+        statistics:
+          type: object
+          properties:
+            totalTheses:
+              type: integer
+            bachelorTheses:
+              type: integer
+            masterTheses:
+              type: integer
+            asSupervisor:
+              type: integer
+            asCoSupervisor:
+              type: integer
+            byStatus:
+              type: object
+              additionalProperties:
+                type: integer
+        theses:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                format: int64
+              title:
+                type: string
+              type:
+                $ref: '#/components/schemas/ThesisType'
+              status:
+                $ref: '#/components/schemas/ThesisStatus'
+              student:
+                type: string
+              role:
+                $ref: '#/components/schemas/SupervisorRole'
+
+    SwsCalculationReport:
+      type: object
+      properties:
+        professorId:
+          type: integer
+          format: int64
+        professorName:
+          type: string
+        semesterId:
+          type: integer
+          format: int64
+        semesterName:
+          type: string
+        swsCalculation:
+          type: object
+          properties:
+            totalSws:
+              type: number
+              format: double
+            swsAsSupervisor:
+              type: number
+              format: double
+            swsAsCoSupervisor:
+              type: number
+              format: double
+            maxSwsAllowed:
+              type: number
+              format: double
+            swsRemaining:
+              type: number
+              format: double
+            isOverLimit:
+              type: boolean
+        breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              thesisId:
+                type: integer
+                format: int64
+              thesisTitle:
+                type: string
+              role:
+                $ref: '#/components/schemas/SupervisorRole'
+              sws:
+                type: number
+                format: double
+              program:
+                type: string
+
+    # Import/Export Schemas
+    ImportResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [SUCCESS, PARTIAL, FAILED]
+        importedRecords:
+          type: integer
+        skippedRecords:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+              field:
+                type: string
+              message:
+                type: string
+
+    # Common Schemas
+    PersonSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        matriculationNumber:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              rejectedValue:
+                type: string
+              message:
+                type: string
