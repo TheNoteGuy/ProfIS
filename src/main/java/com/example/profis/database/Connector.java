@@ -9,8 +9,12 @@ import lombok.Getter;
 public class Connector {
 
     private String dbPath;
-    @Getter
+
     private Connection connection;
+
+    public Connection getConnection() {
+        return connection;
+    }
 
     public Connector(String dbPath) {
         this.dbPath = dbPath;
