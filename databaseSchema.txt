@@ -1,0 +1,66 @@
+DROP DATABASE IF EXISTS ProfIS;
+CREATE DATABASE ProfIS;
+USE ProfIS;
+
+CREATE OR REPLACE TABLE Fachbereiche (
+	id_fachbereich INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR(64) NOT NULL
+);
+
+CREATE OR REPLACE TABLE Art_Abschluesse (
+	id_art_abschluss INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR(64) NOT NULL
+);
+
+CREATE OR REPLACE TABLE Studiengaenge (
+	id_studiengang INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id_fachbereich INT NOT NULL,
+	titel_nach_abschluss VARCHAR(128) NOT NULL,
+	id_art_abschluss INT NOT NULL,
+	FOREIGN KEY (id_fachbereich) REFERENCES Fachbereiche(id_fachbereich),
+	FOREIGN KEY (id_art_abschluss) REFERENCES Art_Abschluesse(id_art_abschluss)
+);
+
+CREATE OR REPLACE TABLE Studenten (
+	matrikelnummer BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	vorname VARCHAR(128) NOT NULL,
+	nachname VARCHAR(128) NOT NULL,
+	mail VARCHAR(128) NOT NULL,
+	scheinfrei BOOL,
+	id_studiengang INT NOT NULL,
+	FOREIGN KEY (id_studiengang) REFERENCES Studiengaenge(id_studiengang)
+);
+
+CREATE OR REPLACE TABLE Referenten (
+	id_referent INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	kommentar VARCHAR(1024),
+	anrede ENUM('Herr', 'Frau'),
+	vorname VARCHAR(128) NOT NULL,
+	nachname VARCHAR(128) NOT NULL,
+	ist_extern BOOL,
+	telefon VARCHAR(32) NOT NULL,
+	mail VARCHAR(128) NOT NULL,
+	addresse VARCHAR(256) NOT NULL
+);
+
+CREATE OR REPLACE TABLE Wissenschaftliche_Arbeiten (
+	id_wissenschaftliche_arbeiten INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	matrikelnummer BIGINT UNSIGNED NOT NULL,
+	id_erstreferent INT NOT NULL,
+	id_korreferent INT NOT NULL,
+
+	titel VARCHAR(256) NOT NULL,
+	start_datum DATE NOT NULL,
+	abgabe_datum DATE,
+	ende_korrektur DATE,
+	kolloquim_beginn DATETIME,
+	kolloquim_ende DATETIME,
+
+	note_arbeit_referent DECIMAL(3,2),
+	note_arbeit_korreferent DECIMAL(3,2),
+	note_kolloquium_referent DECIMAL(3,2),
+	note_kolloquium_korreferent DECIMAL(3,2),
+	FOREIGN KEY (matrikelnummer) REFERENCES Studenten(matrikelnummer),
+	FOREIGN KEY (id_erstreferent) REFERENCES Referenten(id_referent),
+	FOREIGN KEY (id_korreferent) REFERENCES Referenten(id_referent)
+);
