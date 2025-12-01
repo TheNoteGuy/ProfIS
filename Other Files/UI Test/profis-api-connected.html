@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProfIS - API Connected</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #252525;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            background: #4a9eff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #5aa9ff;
+        }
+
+        .btn-secondary {
+            background: #555;
+        }
+
+        .btn-secondary:hover {
+            background: #666;
+        }
+
+        .search-input {
+            flex: 1;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: #252525;
+            padding: 15px;
+            border-radius: 8px;
+            height: fit-content;
+        }
+
+        .thesis-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .thesis-item {
+            background: #1a1a1a;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid #333;
+        }
+
+        .thesis-item:hover {
+            border-color: #4a9eff;
+        }
+
+        .thesis-item.active {
+            background: #2a4a6a;
+            border-color: #4a9eff;
+        }
+
+        .thesis-type {
+            background: #4a9eff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .details {
+            background: #252525;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .details.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            min-height: 400px;
+        }
+
+        .detail-header {
+            border-bottom: 1px solid #444;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .detail-field {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #252525;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #e0e0e0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .loading {
+            color: #4a9eff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .stats {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <button class="btn" onclick="app.openAddThesisModal()">+ Neue Arbeit</button>
+        <button class="btn btn-secondary" onclick="app.loadTheses()">↻ Aktualisieren</button>
+        <input type="text" class="search-input" placeholder="Suchen..." id="searchInput">
+        <div class="stats" id="stats">Lade Daten...</div>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <h3 style="margin-bottom: 15px;">Arbeiten</h3>
+            <div class="thesis-list" id="thesisList">
+                <div class="loading">Lade Arbeiten...</div>
+            </div>
+        </div>
+
+        <div class="details empty" id="thesisDetails">
+            Wählen Sie eine Arbeit aus der Liste aus
+        </div>
+    </div>
+</div>
+
+<!-- Add Thesis Modal -->
+<div class="modal" id="addThesisModal">
+    <div class="modal-content">
+        <h2 style="margin-bottom: 20px;">Neue Arbeit anlegen</h2>
+        <div id="modalError"></div>
+        <form id="thesisForm" onsubmit="app.submitThesis(event)">
+            <div class="form-group">
+                <label class="form-label">Titel *</label>
+                <input type="text" class="form-input" name="title" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Typ *</label>
+                <select class="form-select" name="type" required>
+                    <option value="">Bitte wählen</option>
+                    <option value="BACHELOR">Bachelor</option>
+                    <option value="MASTER">Master</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Student ID *</label>
+                <input type="number" class="form-input" name="studentId" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Betreuer ID *</label>
+                <input type="number" class="form-input" name="supervisorId" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Korreferent ID</label>
+                <input type="number" class="form-input" name="coSupervisorId">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Studiengang ID *</label>
+                <input type="number" class="form-input" name="programId" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Startdatum *</label>
+                <input type="date" class="form-input" name="startDate" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Abgabedatum *</label>
+                <input type="date" class="form-input" name="submissionDate" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Kolloquiumsdatum</label>
+                <input type="date" class="form-input" name="colloquiumDate">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn">Anlegen</button>
+                <button type="button" class="btn btn-secondary" onclick="app.closeAddThesisModal()">Abbrechen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE = 'http://localhost:8080/api';
+
+    const app = {
+        theses: [],
+        selectedThesis: null,
+
+        async init() {
+            await this.loadTheses();
+            this.setupSearch();
+        },
+
+        setupSearch() {
+            const input = document.getElementById('searchInput');
+            input.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = this.theses.filter(t => 
+                    t.title.toLowerCase().includes(term) ||
+                    (t.student && t.student.name.toLowerCase().includes(term))
+                );
+                this.renderThesisList(filtered);
+            });
+        },
+
+        async loadTheses() {
+            try {
+                const response = await fetch(`${API_BASE}/theses?size=100`);
+                if (!response.ok) throw new Error('Fehler beim Laden der Arbeiten');
+                
+                const data = await response.json();
+                this.theses = data.content || [];
+                this.renderThesisList(this.theses);
+                this.updateStats();
+            } catch (error) {
+                console.error('Fehler:', error);
+                document.getElementById('thesisList').innerHTML = 
+                    `<div class="error">Fehler beim Laden: ${error.message}</div>`;
+            }
+        },
+
+        renderThesisList(theses) {
+            const container = document.getElementById('thesisList');
+            
+            if (theses.length === 0) {
+                container.innerHTML = '<div class="loading">Keine Arbeiten gefunden</div>';
+                return;
+            }
+
+            container.innerHTML = theses.map(thesis => `
+                <div class="thesis-item ${this.selectedThesis?.id === thesis.id ? 'active' : ''}" 
+                     onclick="app.selectThesis(${thesis.id})">
+                    <div class="thesis-type">${thesis.type}</div>
+                    <div style="font-weight: bold; margin-bottom: 5px;">
+                        ${thesis.student?.name || 'Unbekannt'}
+                    </div>
+                    <div style="font-size: 13px; color: #999;">
+                        ${thesis.title}
+                    </div>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        Status: ${thesis.status}
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        async selectThesis(id) {
+            try {
+                const response = await fetch(`${API_BASE}/theses/${id}`);
+                if (!response.ok) throw new Error('Fehler beim Laden der Details');
+                
+                this.selectedThesis = await response.json();
+                this.renderThesisDetails();
+                this.renderThesisList(this.theses);
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Laden der Details: ' + error.message);
+            }
+        },
+
+        renderThesisDetails() {
+            const container = document.getElementById('thesisDetails');
+            const t = this.selectedThesis;
+
+            if (!t) {
+                container.className = 'details empty';
+                container.innerHTML = 'Wählen Sie eine Arbeit aus der Liste aus';
+                return;
+            }
+
+            container.className = 'details';
+            container.innerHTML = `
+                <div class="detail-header">
+                    <h2>${t.student?.name || 'Unbekannt'}</h2>
+                    <p style="color: #888;">${t.type}arbeit · Status: ${t.status}</p>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-field" style="grid-column: 1 / -1;">
+                        <div class="detail-label">Titel</div>
+                        <div class="detail-value">${t.title}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">Betreuer</div>
+                        <div class="detail-value">${t.supervisor?.name || '-'}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">Korreferent</div>
+                        <div class="detail-value">${t.coSupervisor?.name || '-'}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">Studiengang</div>
+                        <div class="detail-value">${t.program?.name || '-'}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">Prüfungsordnung</div>
+                        <div class="detail-value">${t.program?.examinationRegulation || '-'}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">Startdatum</div>
+                        <div class="detail-value">${this.formatDate(t.startDate)}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">Abgabedatum</div>
+                        <div class="detail-value">${this.formatDate(t.submissionDate)}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">Kolloquium</div>
+                        <div class="detail-value">${t.colloquiumDate ? this.formatDate(t.colloquiumDate) : 'Nicht festgelegt'}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">Semester</div>
+                        <div class="detail-value">${t.semester?.name || '-'}</div>
+                    </div>
+
+                    ${t.grades ? `
+                        <div class="detail-field" style="grid-column: 1 / -1;">
+                            <div class="detail-label">Noten</div>
+                            <div class="detail-value">
+                                Betreuer Arbeit: ${t.grades.supervisorThesisGrade || '-'}<br>
+                                Betreuer Kolloquium: ${t.grades.supervisorColloquiumGrade || '-'}<br>
+                                Korreferent Arbeit: ${t.grades.coSupervisorThesisGrade || '-'}<br>
+                                Korreferent Kolloquium: ${t.grades.coSupervisorColloquiumGrade || '-'}<br>
+                                <strong>Endnote: ${t.grades.finalGrade || '-'}</strong>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="detail-field">
+                        <div class="detail-label">SWS Betreuer</div>
+                        <div class="detail-value">${t.swsSupervisor || 0}</div>
+                    </div>
+
+                    <div class="detail-field">
+                        <div class="detail-label">SWS Korreferent</div>
+                        <div class="detail-value">${t.swsCoSupervisor || 0}</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="app.deleteThesis(${t.id})">Löschen</button>
+                </div>
+            `;
+        },
+
+        formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('de-DE');
+        },
+
+        updateStats() {
+            const total = this.theses.length;
+            const bachelor = this.theses.filter(t => t.type === 'BACHELOR').length;
+            const master = this.theses.filter(t => t.type === 'MASTER').length;
+            
+            document.getElementById('stats').textContent = 
+                `Gesamt: ${total} | Bachelor: ${bachelor} | Master: ${master}`;
+        },
+
+        openAddThesisModal() {
+            document.getElementById('addThesisModal').classList.add('active');
+        },
+
+        closeAddThesisModal() {
+            document.getElementById('addThesisModal').classList.remove('active');
+            document.getElementById('thesisForm').reset();
+            document.getElementById('modalError').innerHTML = '';
+        },
+
+        async submitThesis(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const data = {
+                title: formData.get('title'),
+                type: formData.get('type'),
+                studentId: parseInt(formData.get('studentId')),
+                supervisorId: parseInt(formData.get('supervisorId')),
+                programId: parseInt(formData.get('programId')),
+                startDate: formData.get('startDate'),
+                submissionDate: formData.get('submissionDate')
+            };
+
+            if (formData.get('coSupervisorId')) {
+                data.coSupervisorId = parseInt(formData.get('coSupervisorId'));
+            }
+            if (formData.get('colloquiumDate')) {
+                data.colloquiumDate = formData.get('colloquiumDate');
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/theses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Fehler beim Anlegen der Arbeit');
+                }
+
+                await this.loadTheses();
+                this.closeAddThesisModal();
+                alert('Arbeit erfolgreich angelegt!');
+            } catch (error) {
+                console.error('Fehler:', error);
+                document.getElementById('modalError').innerHTML = 
+                    `<div class="error">${error.message}</div>`;
+            }
+        },
+
+        async deleteThesis(id) {
+            if (!confirm('Arbeit wirklich löschen?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/theses/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Fehler beim Löschen');
+
+                this.selectedThesis = null;
+                await this.loadTheses();
+                
+                const container = document.getElementById('thesisDetails');
+                container.className = 'details empty';
+                container.innerHTML = 'Wählen Sie eine Arbeit aus der Liste aus';
+                
+                alert('Arbeit gelöscht!');
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Löschen: ' + error.message);
+            }
+        }
+    };
+
+    // Initialize app
+    app.init();
+</script>
+</body>
+</html>
