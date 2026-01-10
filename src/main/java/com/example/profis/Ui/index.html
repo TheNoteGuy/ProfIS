@@ -4,757 +4,569 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProfIS - Professoren-Informationssystem</title>
+    <link rel="stylesheet" href="updated-styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #161616;
-            color: #e4e4e4;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            gap: 16px;
-            position: relative;
-        }
-
-        .top-bar {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .action-button {
-            background-color: #4a9eff;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .action-button:hover {
-            background-color: #5aa9ff;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
-        }
-
-        .action-button svg {
-            width: 18px;
-            height: 18px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2.5;
-        }
-
-        .global-search {
-            flex: 1;
-            max-width: 400px;
-            background-color: #0d0d0d;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 14px;
-            color: #e4e4e4;
-            transition: all 0.2s;
-        }
-
-        .global-search::placeholder {
-            color: #666;
-        }
-
-        .global-search:focus {
-            outline: none;
-            border-color: #4a9eff;
-            background-color: #1a1a1a;
-        }
-
-        .quick-stats {
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 13px;
-            color: #b8b8b8;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .stat-value {
-            color: #4a9eff;
-            font-weight: 600;
-        }
-
-        .main-content {
-            display: flex;
-            gap: 16px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .student-details {
-            flex: 1;
+        /* Additional styles for new views */
+        .form-section {
             background-color: #0d0d0d;
             border: 1px solid #2a2a2a;
             border-radius: 12px;
-            padding: 32px;
-            overflow-y: auto;
+            padding: 24px;
+            margin-bottom: 20px;
         }
 
-        .student-details.empty {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 16px;
-        }
-
-        .detail-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 32px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #2a2a2a;
-        }
-
-        .student-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #4a9eff, #6bb5ff);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .detail-header-info {
-            flex: 1;
-        }
-
-        .detail-header-info h2 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #e4e4e4;
-            margin-bottom: 4px;
-        }
-
-        .detail-header-info p {
-            font-size: 14px;
-            color: #888;
-        }
-
-        .detail-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .icon-button {
-            width: 36px;
-            height: 36px;
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .icon-button:hover {
-            background-color: #2a2a2a;
-            border-color: #4a9eff;
-        }
-
-        .icon-button svg {
-            width: 18px;
-            height: 18px;
-            stroke: #b8b8b8;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .icon-button:hover svg {
-            stroke: #4a9eff;
-        }
-
-        .icon-button.delete:hover {
-            background-color: #e74c3c;
-            border-color: #e74c3c;
-        }
-
-        .icon-button.delete:hover svg {
-            stroke: #ffffff;
-        }
-
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-        }
-
-        .detail-field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .detail-field.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-
-        .detail-value {
-            font-size: 15px;
-            color: #e4e4e4;
-            background-color: #252525;
-            padding: 10px 14px;
-            border-radius: 6px;
-            border: 1px solid #333;
-        }
-
-        .student-list-sidebar {
-            width: 320px;
-            background-color: #0d0d0d;
-            border: 1px solid #2a2a2a;
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            overflow-y: auto;
-        }
-
-        .sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            margin-bottom: 8px;
-        }
-
-        .sidebar-title {
+        .form-section-title {
             font-size: 16px;
             font-weight: 600;
             color: #e4e4e4;
-        }
-
-        .sidebar-count {
-            font-size: 13px;
-            color: #888;
-            background-color: #252525;
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-
-        .search-box {
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: #e4e4e4;
-            margin-bottom: 8px;
-            transition: all 0.2s;
-        }
-
-        .search-box::placeholder {
-            color: #666;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #4a9eff;
-            background-color: #1a1a1a;
-        }
-
-        .student-item {
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .student-item:hover {
-            background-color: #2a2a2a;
-            border-color: #4a4a4a;
-        }
-
-        .student-item.active {
-            background-color: #1a3a5a;
-            border-color: #4a9eff;
-        }
-
-        .student-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .student-type-badge {
-            background-color: #4a9eff;
-            color: #ffffff;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .student-matrikel {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .student-item-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: #e4e4e4;
-            margin-bottom: 4px;
-        }
-
-        .student-item-email {
-            font-size: 13px;
-            color: #888;
-            line-height: 1.4;
-        }
-
-        .bottom-bar {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .status-bar {
-            flex: 1;
-            background-color: #0d0d0d;
-            border: 1px solid #2a2a2a;
-            border-radius: 8px;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            background-color: #4ade80;
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        .status-text {
-            font-size: 13px;
-            color: #888;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header {
-            padding: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
             border-bottom: 1px solid #2a2a2a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .modal-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #e4e4e4;
-        }
-
-        .modal-close {
-            width: 32px;
-            height: 32px;
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .modal-close:hover {
-            background-color: #e74c3c;
-            border-color: #e74c3c;
-        }
-
-        .modal-close svg {
-            width: 16px;
-            height: 16px;
-            stroke: #b8b8b8;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .modal-close:hover svg {
-            stroke: #ffffff;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .form-grid {
+        .form-columns {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
 
-        .form-field {
+        .form-columns.three {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .form-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
 
-        .form-field.full-width {
+        .form-group.full-width {
             grid-column: 1 / -1;
         }
 
-        .form-label {
-            font-size: 13px;
-            color: #b8b8b8;
-            font-weight: 500;
-        }
-
-        .form-input, .form-select {
+        .form-textarea {
             background-color: #0d0d0d;
             border: 1px solid #333;
             border-radius: 8px;
             padding: 10px 14px;
             font-size: 14px;
             color: #e4e4e4;
-            transition: all 0.2s;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
         }
 
-        .form-input::placeholder {
-            color: #666;
-        }
-
-        .form-input:focus, .form-select:focus {
+        .form-textarea:focus {
             outline: none;
-            border-color: #4a9eff;
+            border-color: #b7a5c9;
             background-color: #1a1a1a;
         }
 
-        .form-checkbox {
+        .tab-navigation {
             display: flex;
-            align-items: center;
             gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2a2a2a;
         }
 
-        .form-checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-        }
-
-        .modal-footer {
-            padding: 24px;
-            border-top: 1px solid #2a2a2a;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-
-        .modal-button {
-            padding: 10px 24px;
-            border-radius: 8px;
+        .tab-button {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 12px 20px;
             font-size: 14px;
-            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
-            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
         }
 
-        .modal-button.cancel {
+        .tab-button:hover {
+            color: #e4e4e4;
+        }
+
+        .tab-button.active {
+            color: #b7a5c9;
+            border-bottom-color: #b7a5c9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-badge.active {
+            background-color: #1a4d2e;
+            color: #4ade80;
+        }
+
+        .status-badge.pending {
+            background-color: #4d3c1a;
+            color: #fbbf24;
+        }
+
+        .overview-card {
             background-color: #252525;
             border: 1px solid #333;
-            color: #b8b8b8;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
         }
 
-        .modal-button.cancel:hover {
+        .overview-card:hover {
             background-color: #2a2a2a;
             border-color: #4a4a4a;
         }
 
-        .modal-button.primary {
-            background-color: #4a9eff;
+        .overview-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .overview-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #e4e4e4;
+        }
+
+        .overview-card-meta {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .overview-card-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .overview-field {
+            font-size: 13px;
+        }
+
+        .overview-field-label {
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .overview-field-value {
+            color: #e4e4e4;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn-small {
+            padding: 6px 16px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background-color: #252525;
+            border: 1px solid #4a9eff;
+            color: #4a9eff;
+        }
+
+        .btn-edit:hover {
+            background-color: #1a3a5a;
+        }
+
+        .btn-select {
+            background-color: #b7a5c9;
             color: #ffffff;
         }
 
-        .modal-button.primary:hover {
-            background-color: #5aa9ff;
-        }
-
-        .error-message {
-            background-color: #4a1a1a;
-            border: 1px solid #e74c3c;
-            color: #ff6b6b;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 13px;
+        .btn-select:hover {
+            background-color: #915aff;
         }
     </style>
 </head>
+
 <body>
-
-<div class="top-bar">
-    <button class="action-button" onclick="openAddStudentModal()">
-        <svg viewBox="0 0 24 24">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        Neuer Student
-    </button>
-
-    <input type="text" class="global-search" placeholder="Studenten durchsuchen..." oninput="filterStudents(this.value)">
-
-    <div class="quick-stats">
-        <div class="stat-item">
-            <span>Studenten:</span>
-            <span class="stat-value" id="totalCount">0</span>
-        </div>
-    </div>
+<!-- Navigation -->
+<div class="topnav">
+    <a data-view="overview">Übersicht</a>
+    <a data-view="students">Studenten</a>
+    <a data-view="theses">Arbeiten</a>
+    <a data-view="professors">Referenten</a>
+    <a data-view="dashboard">Dashboard</a>
 </div>
 
-<div class="main-content">
-    <div class="student-details empty" id="studentDetails">
-        Wählen Sie einen Studenten aus der Liste aus
-    </div>
+<!-- Main App Container -->
+<div id="app"></div>
 
-    <div class="student-list-sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">Studenten</div>
-            <div class="sidebar-count" id="visibleCount">0</div>
-        </div>
-
-        <div id="studentList"></div>
-    </div>
-</div>
-
+<!-- Bottom Status Bar -->
 <div class="bottom-bar">
     <div class="status-bar">
         <div class="status-indicator"></div>
-        <span class="status-text" id="statusText">Verbunden mit API</span>
+        <span class="status-text" id="statusText">System bereit</span>
     </div>
 </div>
 
-<!-- Add Student Modal -->
-<div class="modal-overlay" id="addStudentModal">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title">Neuen Studenten anlegen</div>
-            <div class="modal-close" onclick="closeAddStudentModal()">
-                <svg viewBox="0 0 24 24">
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                </svg>
-            </div>
-        </div>
-        <div class="modal-body">
-            <div id="errorMessage"></div>
-            <form id="addStudentForm" onsubmit="submitNewStudent(event)">
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label class="form-label">Vorname *</label>
-                        <input type="text" class="form-input" id="studentFirstName" required placeholder="Anna">
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Nachname *</label>
-                        <input type="text" class="form-input" id="studentLastName" required placeholder="Schmidt">
-                    </div>
-
-                    <div class="form-field full-width">
-                        <label class="form-label">E-Mail *</label>
-                        <input type="email" class="form-input" id="studentEmail" required
-                               placeholder="anna.schmidt@student.th-mittelhessen.de">
-                    </div>
-
-                    <div class="form-field">
-                        <label class="form-label">Studiengang *</label>
-                        <select class="form-select" id="studentProgram" required>
-                            <option value="">Bitte wählen</option>
-                            <option value="1">BSc Wirtschaftsinformatik</option>
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label class="form-checkbox">
-                            <input type="checkbox" id="studentScheinfrei">
-                            <span class="form-label">Scheinfrei</span>
-                        </label>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="modal-button cancel" onclick="closeAddStudentModal()">Abbrechen</button>
-            <button class="modal-button primary" onclick="document.getElementById('addStudentForm').requestSubmit()">
-                Anlegen
-            </button>
-        </div>
-    </div>
-</div>
+<!-- Modals Container -->
+<div id="modals"></div>
 
 <script>
-    // API Base URL
     const API_BASE_URL = 'http://localhost:8080/api';
 
-    let students = [];
-    let selectedStudent = null;
-    let filteredStudents = [];
+    const AppState = {
+        currentView: 'overview',
+        students: [],
+        theses: [],
+        professors: [],
+        selectedStudent: null,
+        selectedThesis: null,
+        selectedProfessor: null
+    };
 
-    // Initialize
-    async function init() {
+    // ==================== VIEW MANAGER ====================
+    const ViewManager = {
+        views: {},
+
+        register(name, viewFunction) {
+            this.views[name] = viewFunction;
+        },
+
+        render(viewName) {
+            if (!this.views[viewName]) {
+                console.error(`View ${viewName} not found`);
+                return;
+            }
+
+            AppState.currentView = viewName;
+            const appContainer = document.getElementById('app');
+            appContainer.innerHTML = this.views[viewName]();
+
+            document.querySelectorAll('.topnav a').forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.view === viewName) {
+                    link.classList.add('active');
+                }
+            });
+
+            const initFn = window[`init${viewName.charAt(0).toUpperCase() + viewName.slice(1)}View`];
+            if (initFn) initFn();
+        }
+    };
+
+    // ==================== OVERVIEW VIEW ====================
+    ViewManager.register('overview', () => `
+        <div class="view-container">
+            <div class="top-bar">
+                <button class="action-button" onclick="openAddThesisModal()">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Neue Arbeit
+                </button>
+                <input type="text" class="global-search" placeholder="Arbeiten durchsuchen..." oninput="filterOverviewTheses(this.value)">
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <span>Arbeiten:</span>
+                        <span class="stat-value" id="overviewThesesCount">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="main-content">
+                <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                    <div id="overviewThesesList"></div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // ==================== STUDENTS VIEW ====================
+    ViewManager.register('students', () => `
+        <div class="view-container">
+            <div class="top-bar">
+                <button class="action-button" onclick="openAddStudentModal()">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Neuer Student
+                </button>
+                <input type="text" class="global-search" placeholder="Studenten durchsuchen..." oninput="filterStudents(this.value)">
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <span>Studenten:</span>
+                        <span class="stat-value" id="totalStudentsCount">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="main-content">
+                <div class="details-panel empty" id="studentDetails">
+                    Wählen Sie einen Studenten aus der Liste aus oder klicken Sie auf "Neuer Student"
+                </div>
+                <div class="list-sidebar">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title">Studenten</div>
+                        <div class="sidebar-count" id="visibleStudentsCount">0</div>
+                    </div>
+                    <div id="studentsList"></div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // ==================== THESES VIEW ====================
+    ViewManager.register('theses', () => `
+        <div class="view-container">
+            <div class="top-bar">
+                <button class="action-button" onclick="openAddThesisModal()">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Neue Arbeit
+                </button>
+                <input type="text" class="global-search" placeholder="Arbeiten durchsuchen...">
+            </div>
+            <div class="main-content">
+                <div class="details-panel empty" id="thesisDetails">
+                    Wählen Sie eine Arbeit aus oder erstellen Sie eine neue
+                </div>
+                <div class="list-sidebar">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title">Arbeiten</div>
+                        <div class="sidebar-count">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // ==================== PROFESSORS VIEW ====================
+    ViewManager.register('professors', () => `
+        <div class="view-container">
+            <div class="top-bar">
+                <button class="action-button" onclick="openAddProfessorModal()">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Neuer Referent
+                </button>
+                <input type="text" class="global-search" placeholder="Referenten durchsuchen...">
+            </div>
+            <div class="main-content">
+                <div class="details-panel empty" id="professorDetails">
+                    Wählen Sie einen Referenten aus oder erstellen Sie einen neuen
+                </div>
+                <div class="list-sidebar">
+                    <div class="sidebar-header">
+                        <div class="sidebar-title">Referenten</div>
+                        <div class="sidebar-count">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // ==================== DASHBOARD VIEW ====================
+    ViewManager.register('dashboard', () => `
+        <div class="view-container">
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Arbeiten</h3>
+                    <div class="dashboard-stat" id="dashThesesCount">0</div>
+                    <div class="dashboard-label">Gesamt</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Studenten</h3>
+                    <div class="dashboard-stat" id="dashStudentsCount">0</div>
+                    <div class="dashboard-label">Registriert</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Referenten</h3>
+                    <div class="dashboard-stat" id="dashProfessorsCount">0</div>
+                    <div class="dashboard-label">Aktiv</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>In Bearbeitung</h3>
+                    <div class="dashboard-stat" id="dashActiveCount">0</div>
+                    <div class="dashboard-label">Laufende Arbeiten</div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // ==================== VIEW INITIALIZATION ====================
+
+    async function initOverviewView() {
         await loadStudents();
+        renderOverviewTheses();
     }
 
-    // Load students from API
+    async function initStudentsView() {
+        await loadStudents();
+        renderStudentsList(AppState.students);
+        updateStudentsStats();
+    }
+
+    async function initDashboardView() {
+        await loadStudents();
+        document.getElementById('dashStudentsCount').textContent = AppState.students.length;
+        document.getElementById('dashThesesCount').textContent = 0;
+        document.getElementById('dashProfessorsCount').textContent = 0;
+        document.getElementById('dashActiveCount').textContent = 0;
+    }
+
+    // ==================== API FUNCTIONS ====================
+
     async function loadStudents() {
         try {
             const response = await fetch(`${API_BASE_URL}/students`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            students = await response.json();
-            filteredStudents = [...students];
-            renderStudentList(filteredStudents);
-            updateStats();
-            updateStatus('Studenten geladen');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            AppState.students = await response.json();
+            return AppState.students;
         } catch (error) {
-            console.error('Fehler beim Laden der Studenten:', error);
-            updateStatus('Fehler: Keine Verbindung zur API');
-            showError('Fehler beim Laden der Studenten: ' + error.message);
+            console.error('Error loading students:', error);
+            updateStatus('Fehler beim Laden der Studenten');
+            return [];
         }
     }
 
-    // Render student list
-    function renderStudentList(studentsToShow) {
-        const listContainer = document.getElementById('studentList');
-        listContainer.innerHTML = '';
+    // ==================== RENDER FUNCTIONS ====================
 
-        if (studentsToShow.length === 0) {
-            listContainer.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Keine Studenten gefunden</div>';
+    function renderOverviewTheses() {
+        const container = document.getElementById('overviewThesesList');
+
+        // Mock data for demonstration
+        const mockTheses = [
+            {
+                id: 1,
+                student: 'Max Mustermann',
+                title: 'Machine Learning Ansätze zur Vorhersage von Softwarefehlern',
+                startDate: '2024-10-01',
+                submissionDate: '2025-03-01',
+                supervisor: 'Prof. Dr. Grüne',
+                coSupervisor: 'Dr. Klein',
+                colloquiumDate: '2025-03-20',
+                status: 'ACTIVE'
+            },
+            {
+                id: 2,
+                student: 'Anna Schmidt',
+                title: 'Entwicklung eines Webshop-Systems mit React und Node.js',
+                startDate: '2024-09-15',
+                submissionDate: '2025-02-15',
+                supervisor: 'Prof. Dr. Müller',
+                coSupervisor: 'Prof. Dr. Wagner',
+                colloquiumDate: null,
+                status: 'PENDING'
+            }
+        ];
+
+        container.innerHTML = mockTheses.map(thesis => `
+            <div class="overview-card">
+                <div class="overview-card-header">
+                    <div class="overview-card-title">
+                        ${thesis.student}
+                        <span class="status-badge ${thesis.status === 'ACTIVE' ? 'active' : 'pending'}">
+                            ${thesis.status === 'ACTIVE' ? 'Aktiv' : 'Anstehend'}
+                        </span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-small btn-edit" onclick="editThesis(${thesis.id})">Anlegen/Auswählen</button>
+                    </div>
+                </div>
+                <div class="overview-card-meta">${thesis.title}</div>
+                <div class="overview-card-content">
+                    <div class="overview-field">
+                        <div class="overview-field-label">Startdatum / Semester</div>
+                        <div class="overview-field-value">${formatDate(thesis.startDate)}</div>
+                    </div>
+                    <div class="overview-field">
+                        <div class="overview-field-label">Abgabedatum / Semester</div>
+                        <div class="overview-field-value">${formatDate(thesis.submissionDate)}</div>
+                    </div>
+                    <div class="overview-field">
+                        <div class="overview-field-label">Referent</div>
+                        <div class="overview-field-value">${thesis.supervisor}</div>
+                    </div>
+                    <div class="overview-field">
+                        <div class="overview-field-label">Korreferent</div>
+                        <div class="overview-field-value">${thesis.coSupervisor}</div>
+                    </div>
+                    <div class="overview-field">
+                        <div class="overview-field-label">Kolloquiumsdatum / Semester</div>
+                        <div class="overview-field-value">${thesis.colloquiumDate ? formatDate(thesis.colloquiumDate) : 'Nicht festgelegt'}</div>
+                    </div>
+                    <div class="overview-field">
+                        <div class="overview-field-label">Note Referent / Korreferent</div>
+                        <div class="overview-field-value">- / -</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('overviewThesesCount').textContent = mockTheses.length;
+    }
+
+    function renderStudentsList(students) {
+        const container = document.getElementById('studentsList');
+        if (!students || students.length === 0) {
+            container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Keine Studenten gefunden</div>';
             return;
         }
 
-        studentsToShow.forEach(student => {
-            const item = document.createElement('div');
-            item.className = 'student-item';
-            if (selectedStudent && selectedStudent.matrikelnummer === student.matrikelnummer) {
-                item.classList.add('active');
-            }
-
-            item.innerHTML = `
-                <div class="student-item-header">
-                    <div class="student-type-badge">Student</div>
-                    <div class="student-matrikel">Mat.-Nr. ${student.matrikelnummer}</div>
+        container.innerHTML = students.map(student => `
+            <div class="list-item ${AppState.selectedStudent?.matrikelnummer === student.matrikelnummer ? 'active' : ''}" onclick="selectStudent(${student.matrikelnummer})">
+                <div class="item-header">
+                    <div class="item-badge">Student</div>
+                    <div class="item-meta">Mat.-Nr. ${student.matrikelnummer}</div>
                 </div>
-                <div class="student-item-name">${student.vorname} ${student.nachname}</div>
-                <div class="student-item-email">${student.mail}</div>
-            `;
-
-            item.onclick = () => selectStudent(student);
-            listContainer.appendChild(item);
-        });
-
-        document.getElementById('visibleCount').textContent = studentsToShow.length;
+                <div class="item-title">${student.vorname} ${student.nachname}</div>
+                <div class="item-subtitle">${student.mail}</div>
+            </div>
+        `).join('');
     }
 
-    // Select student
-    async function selectStudent(student) {
-        selectedStudent = student;
-        renderStudentList(filteredStudents);
-        displayStudentDetails(student);
+    // ==================== SELECTION FUNCTIONS ====================
+
+    function selectStudent(matrikelnummer) {
+        AppState.selectedStudent = AppState.students.find(s => s.matrikelnummer === matrikelnummer);
+        renderStudentsList(AppState.students);
+        displayStudentDetails(AppState.selectedStudent);
     }
 
-    // Display student details
     function displayStudentDetails(student) {
-        const detailsContainer = document.getElementById('studentDetails');
-        detailsContainer.className = 'student-details';
-
+        const container = document.getElementById('studentDetails');
         const initials = student.vorname.charAt(0) + student.nachname.charAt(0);
 
-        detailsContainer.innerHTML = `
+        container.className = 'details-panel';
+        container.innerHTML = `
             <div class="detail-header">
-                <div class="student-icon">${initials}</div>
+                <div class="detail-icon">${initials}</div>
                 <div class="detail-header-info">
                     <h2>${student.vorname} ${student.nachname}</h2>
                     <p>Matrikelnummer: ${student.matrikelnummer}</p>
                 </div>
                 <div class="detail-actions">
-                    <div class="icon-button delete" onclick="deleteStudent()" title="Löschen">
+                    <div class="icon-button" onclick="openEditStudentModal(${student.matrikelnummer})" title="Bearbeiten">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </div>
+                    <div class="icon-button delete" onclick="deleteStudent(${student.matrikelnummer})" title="Löschen">
                         <svg viewBox="0 0 24 24">
                             <polyline points="3 6 5 6 21 6"/>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -762,33 +574,27 @@
                     </div>
                 </div>
             </div>
-
             <div class="detail-grid">
                 <div class="detail-field">
                     <div class="detail-label">Vorname</div>
                     <div class="detail-value">${student.vorname}</div>
                 </div>
-
                 <div class="detail-field">
                     <div class="detail-label">Nachname</div>
                     <div class="detail-value">${student.nachname}</div>
                 </div>
-
-                <div class="detail-field full-width">
-                    <div class="detail-label">E-Mail</div>
-                    <div class="detail-value">${student.mail}</div>
-                </div>
-
                 <div class="detail-field">
                     <div class="detail-label">Matrikelnummer</div>
                     <div class="detail-value">${student.matrikelnummer}</div>
                 </div>
-
+                <div class="detail-field full-width">
+                    <div class="detail-label">E-Mail</div>
+                    <div class="detail-value">${student.mail}</div>
+                </div>
                 <div class="detail-field">
                     <div class="detail-label">Studiengang-ID</div>
                     <div class="detail-value">${student.idStudiengang}</div>
                 </div>
-
                 <div class="detail-field">
                     <div class="detail-label">Scheinfrei</div>
                     <div class="detail-value">${student.scheinfrei ? 'Ja' : 'Nein'}</div>
@@ -797,131 +603,667 @@
         `;
     }
 
-    // Filter students
-    function filterStudents(searchTerm) {
-        if (searchTerm) {
-            filteredStudents = students.filter(student => {
-                const name = `${student.vorname} ${student.nachname}`.toLowerCase();
-                const email = student.mail.toLowerCase();
-                const search = searchTerm.toLowerCase();
-                return name.includes(search) || email.includes(search);
-            });
-        } else {
-            filteredStudents = [...students];
-        }
+    // ==================== MODAL FUNCTIONS ====================
 
-        renderStudentList(filteredStudents);
-    }
-
-    // Update stats
-    function updateStats() {
-        document.getElementById('totalCount').textContent = students.length;
-    }
-
-    // Open add student modal
     function openAddStudentModal() {
-        document.getElementById('addStudentModal').classList.add('active');
-        document.getElementById('errorMessage').innerHTML = '';
+        const modalsContainer = document.getElementById('modals');
+        modalsContainer.innerHTML = `
+            <div class="modal-overlay active">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div class="modal-title">Studierende/r</div>
+                        <div class="modal-close" onclick="closeModal()">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div id="errorMessage"></div>
+                        <form id="studentForm" onsubmit="submitStudent(event)">
+                            <div class="form-section">
+                                <div class="form-grid">
+                                    <div class="form-group full-width">
+                                        <label class="form-label">Studiengang: <NAME, PO-Nr></label>
+                                        <input type="text" class="form-input" id="studentProgram" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Matrikelnummer</label>
+                                        <input type="text" class="form-input" id="studentMatrikel" placeholder="1234567">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" class="form-input" id="studentLastName" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Vorname</label>
+                                        <input type="text" class="form-input" id="studentFirstName" required>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label class="form-label">Adresse</label>
+                                        <textarea class="form-textarea" id="studentAddress" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Telefon</label>
+                                        <input type="tel" class="form-input" id="studentPhone" placeholder="0123-456789">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">E-Mail *</label>
+                                        <input type="email" class="form-input" id="studentEmail" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-button cancel" onclick="closeModal()">Cancel</button>
+                        <button class="modal-button primary" onclick="document.getElementById('studentForm').requestSubmit()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
-    // Close add student modal
-    function closeAddStudentModal() {
-        document.getElementById('addStudentModal').classList.remove('active');
-        document.getElementById('addStudentForm').reset();
-        document.getElementById('errorMessage').innerHTML = '';
+    function openAddThesisModal() {
+        const modalsContainer = document.getElementById('modals');
+        modalsContainer.innerHTML = `
+            <div class="modal-overlay active">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div class="tab-navigation">
+                            <button class="tab-button active" onclick="switchTab('arbeit')">Arbeit</button>
+                            <button class="tab-button" onclick="switchTab('stammdaten')">Stammdaten</button>
+                        </div>
+                        <div class="modal-close" onclick="closeModal()">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div id="errorMessage"></div>
+
+                        <!-- Arbeit Tab -->
+                        <div id="arbeitTab">
+                            <form id="thesisForm" onsubmit="submitThesis(event)">
+                                <div class="form-section">
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label class="form-label">Studiengang: <NAME, PO-Nr></label>
+                                            <input type="text" class="form-input" required>
+                                        </div>
+                                        <div class="form-group full-width">
+                                            <label class="form-label">Titel der Arbeit</label>
+                                            <textarea class="form-textarea" rows="3" required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="form-section-title">Arbeit</div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label class="form-label">Startdatum</label>
+                                            <input type="date" class="form-input" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Abgabedatum</label>
+                                            <input type="date" class="form-input" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="form-section-title">Kolloquium</div>
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label class="form-label">Kolloquiumsdatum</label>
+                                            <input type="date" class="form-input">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Uhrzeit Kolloquium von:</label>
+                                            <input type="time" class="form-input">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">bis:</label>
+                                            <input type="time" class="form-input">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="form-section-title">Referent</div>
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label class="form-label">Note Arbeit (Referent)</label>
+                                            <select class="form-select">
+                                                <option value="">Bitte wählen</option>
+                                                <option value="1.0">1,0</option>
+                                                <option value="1.3">1,3</option>
+                                                <option value="1.7">1,7</option>
+                                                <option value="2.0">2,0</option>
+                                                <option value="2.3">2,3</option>
+                                                <option value="2.7">2,7</option>
+                                                <option value="3.0">3,0</option>
+                                                <option value="3.3">3,3</option>
+                                                <option value="3.7">3,7</option>
+                                                <option value="4.0">4,0</option>
+                                                <option value="5.0">5,0</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group full-width">
+                                            <label class="form-label">Note Kolloquium (Referent)</label>
+                                            <select class="form-select">
+                                                <option value="">Bitte wählen</option>
+                                                <option value="1.0">1,0</option>
+                                                <option value="1.3">1,3</option>
+                                                <option value="1.7">1,7</option>
+                                                <option value="2.0">2,0</option>
+                                                <option value="2.3">2,3</option>
+                                                <option value="2.7">2,7</option>
+                                                <option value="3.0">3,0</option>
+                                                <option value="3.3">3,3</option>
+                                                <option value="3.7">3,7</option>
+                                                <option value="4.0">4,0</option>
+                                                <option value="5.0">5,0</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="form-section-title">Korreferent</div>
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label class="form-label">Note Arbeit (Korreferent)</label>
+                                            <select class="form-select">
+                                                <option value="">Bitte wählen</option>
+                                                <option value="1.0">1,0</option>
+                                                <option value="1.3">1,3</option>
+                                                <option value="1.7">1,7</option>
+                                                <option value="2.0">2,0</option>
+                                                <option value="2.3">2,3</option>
+                                                <option value="2.7">2,7</option>
+                                                <option value="3.0">3,0</option>
+                                                <option value="3.3">3,3</option>
+                                                <option value="3.7">3,7</option>
+                                                <option value="4.0">4,0</option>
+                                                <option value="5.0">5,0</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group full-width">
+                                            <label class="form-label">Note Kolloquium (Korreferent)</label>
+                                            <select class="form-select">
+                                                <option value="">Bitte wählen</option>
+                                                <option value="1.0">1,0</option>
+                                                <option value="1.3">1,3</option>
+                                                <option value="1.7">1,7</option>
+                                                <option value="2.0">2,0</option>
+                                                <option value="2.3">2,3</option>
+                                                <option value="2.7">2,7</option>
+                                                <option value="3.0">3,0</option>
+                                                <option value="3.3">3,3</option>
+                                                <option value="3.7">3,7</option>
+                                                <option value="4.0">4,0</option>
+                                                <option value="5.0">5,0</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="form-section-title">Gesamtnote</div>
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label class="form-label">Berechnete Note nach PO</label>
+                                            <input type="text" class="form-input" readonly value="-">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Stammdaten Tab -->
+                        <div id="stammdatenTab" style="display: none;">
+                            <div class="form-section">
+                                <div class="form-section-title">Student/in</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Vorname</label>
+                                        <input type="text" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Nachname</label>
+                                        <input type="text" class="form-input">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label class="form-label">E-Mail</label>
+                                        <input type="email" class="form-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title">Referent/in</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Titel</label>
+                                        <select class="form-select">
+                                            <option value="">Bitte wählen</option>
+                                            <option value="prof-dr">Prof. Dr.</option>
+                                            <option value="dr">Dr.</option>
+                                            <option value="prof">Prof.</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Vorname</label>
+                                        <input type="text" class="form-input">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label class="form-label">Adresse</label>
+                                        <textarea class="form-textarea" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Telefon</label>
+                                        <input type="tel" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">E-Mail</label>
+                                        <input type="email" class="form-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title">Korreferent/in</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Titel</label>
+                                        <select class="form-select">
+                                            <option value="">Bitte wählen</option>
+                                            <option value="prof-dr">Prof. Dr.</option>
+                                            <option value="dr">Dr.</option>
+                                            <option value="prof">Prof.</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Vorname</label>
+                                        <input type="text" class="form-input">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label class="form-label">Adresse</label>
+                                        <textarea class="form-textarea" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Telefon</label>
+                                        <input type="tel" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">E-Mail</label>
+                                        <input type="email" class="form-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-button cancel" onclick="closeModal()">Cancel</button>
+                        <button class="modal-button primary" onclick="submitThesisForm()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
-    // Submit new student
-    async function submitNewStudent(event) {
+    function openAddProfessorModal() {
+        const modalsContainer = document.getElementById('modals');
+        modalsContainer.innerHTML = `
+            <div class="modal-overlay active">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div class="modal-title">Referent/in</div>
+                        <div class="modal-close" onclick="closeModal()">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div id="errorMessage"></div>
+                        <form id="professorForm" onsubmit="submitProfessor(event)">
+                            <div class="form-section">
+                                <div style="text-align: center; margin-bottom: 20px;">
+                                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #744aff, #756bff); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                                        <svg viewBox="0 0 24 24" style="width: 40px; height: 40px; stroke: #fff; fill: none; stroke-width: 2;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="form-group full-width">
+                                        <label class="form-label">Titel</label>
+                                        <select class="form-select" id="professorTitle">
+                                            <option value="">Bitte wählen</option>
+                                            <option value="prof-dr">Prof. Dr.</option>
+                                            <option value="dr">Dr.</option>
+                                            <option value="prof">Prof.</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Name *</label>
+                                        <input type="text" class="form-input" id="professorLastName" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Vorname *</label>
+                                        <input type="text" class="form-input" id="professorFirstName" required>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label class="form-label">Adresse</label>
+                                        <textarea class="form-textarea" id="professorAddress" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Telefon *</label>
+                                        <input type="tel" class="form-input" id="professorPhone" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">E-Mail *</label>
+                                        <input type="email" class="form-input" id="professorEmail" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-button cancel" onclick="closeModal()">Cancel</button>
+                        <button class="modal-button primary" onclick="document.getElementById('professorForm').requestSubmit()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function openColloquiumProtocolModal() {
+        const modalsContainer = document.getElementById('modals');
+        modalsContainer.innerHTML = `
+            <div class="modal-overlay active">
+                <div class="modal">
+                    <div class="modal-header">
+                        <div class="modal-title">Kolloquiumsprotokoll</div>
+                        <div class="modal-close" onclick="closeModal()">
+                            <svg viewBox="0 0 24 24">
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <form id="protocolForm" onsubmit="submitProtocol(event)">
+                            <div class="form-section">
+                                <div class="form-grid">
+                                    <div class="form-group full-width" style="background: #1a3a5a; padding: 16px; border-radius: 8px;">
+                                        <div style="font-weight: 600; margin-bottom: 8px;">Student/in: <Mat-Nr.>, <VORNAME>, <NACHNAME></div>
+                                        <div>Titel der Arbeit: <TITEL></div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Kolloquiumsdatum</label>
+                                        <input type="date" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Präsentation von:</label>
+                                        <input type="time" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">bis:</label>
+                                        <input type="time" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Beginn (Uhrzeit)</label>
+                                        <input type="time" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Diskussion von:</label>
+                                        <input type="time" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">bis:</label>
+                                        <input type="time" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Ende (Uhrzeit)</label>
+                                        <input type="time" class="form-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title">Benotung</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">Note Referent</label>
+                                        <select class="form-select">
+                                            <option value="">Bitte wählen</option>
+                                            <option value="1.0">1,0</option>
+                                            <option value="1.3">1,3</option>
+                                            <option value="1.7">1,7</option>
+                                            <option value="2.0">2,0</option>
+                                            <option value="2.3">2,3</option>
+                                            <option value="2.7">2,7</option>
+                                            <option value="3.0">3,0</option>
+                                            <option value="3.3">3,3</option>
+                                            <option value="3.7">3,7</option>
+                                            <option value="4.0">4,0</option>
+                                            <option value="5.0">5,0</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Note Korreferent</label>
+                                        <select class="form-select">
+                                            <option value="">Bitte wählen</option>
+                                            <option value="1.0">1,0</option>
+                                            <option value="1.3">1,3</option>
+                                            <option value="1.7">1,7</option>
+                                            <option value="2.0">2,0</option>
+                                            <option value="2.3">2,3</option>
+                                            <option value="2.7">2,7</option>
+                                            <option value="3.0">3,0</option>
+                                            <option value="3.3">3,3</option>
+                                            <option value="3.7">3,7</option>
+                                            <option value="4.0">4,0</option>
+                                            <option value="5.0">5,0</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label class="form-label">Protokoll</label>
+                                        <textarea class="form-textarea" rows="6" placeholder="Hier Notizen zum Kolloquium eintragen..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-button cancel" onclick="closeModal()">Cancel</button>
+                        <button class="modal-button primary" onclick="document.getElementById('protocolForm').requestSubmit()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function switchTab(tabName) {
+        const arbeitTab = document.getElementById('arbeitTab');
+        const stammdatenTab = document.getElementById('stammdatenTab');
+        const buttons = document.querySelectorAll('.tab-button');
+
+        buttons.forEach(btn => btn.classList.remove('active'));
+
+        if (tabName === 'arbeit') {
+            arbeitTab.style.display = 'block';
+            stammdatenTab.style.display = 'none';
+            buttons[0].classList.add('active');
+        } else {
+            arbeitTab.style.display = 'none';
+            stammdatenTab.style.display = 'block';
+            buttons[1].classList.add('active');
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('modals').innerHTML = '';
+    }
+
+    // ==================== SUBMIT FUNCTIONS ====================
+
+    async function submitStudent(event) {
         event.preventDefault();
 
         const newStudent = {
             vorname: document.getElementById('studentFirstName').value,
             nachname: document.getElementById('studentLastName').value,
             mail: document.getElementById('studentEmail').value,
-            scheinfrei: document.getElementById('studentScheinfrei').checked,
-            idStudiengang: parseInt(document.getElementById('studentProgram').value)
+            scheinfrei: false,
+            idStudiengang: 1 // Default value
         };
 
         try {
             const response = await fetch(`${API_BASE_URL}/students`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newStudent)
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const createdStudent = await response.json();
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             await loadStudents();
-            closeAddStudentModal();
+            renderStudentsList(AppState.students);
+            updateStudentsStats();
+            closeModal();
             updateStatus('Student erfolgreich angelegt');
-            selectStudent(createdStudent);
-
         } catch (error) {
-            console.error('Fehler beim Erstellen des Studenten:', error);
-            showError('Fehler beim Erstellen: ' + error.message);
+            console.error('Error creating student:', error);
+            document.getElementById('errorMessage').innerHTML = `<div class="error-message">${error.message}</div>`;
         }
     }
 
-    // Delete student
-    async function deleteStudent() {
-        if (!selectedStudent) return;
+    async function submitThesisForm() {
+        // Implement thesis submission
+        updateStatus('Arbeit wird gespeichert...');
+        closeModal();
+        updateStatus('Arbeit erfolgreich angelegt');
+    }
 
-        const confirmed = confirm(`Möchten Sie ${selectedStudent.vorname} ${selectedStudent.nachname} wirklich löschen?`);
-        if (!confirmed) return;
+    async function submitProfessor(event) {
+        event.preventDefault();
+        // Implement professor submission
+        updateStatus('Referent wird gespeichert...');
+        closeModal();
+        updateStatus('Referent erfolgreich angelegt');
+    }
+
+    async function submitProtocol(event) {
+        event.preventDefault();
+        // Implement protocol submission
+        updateStatus('Protokoll wird gespeichert...');
+        closeModal();
+        updateStatus('Protokoll erfolgreich gespeichert');
+    }
+
+    async function deleteStudent(matrikelnummer) {
+        if (!confirm('Student wirklich löschen?')) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/students/${selectedStudent.matrikelnummer}`, {
+            const response = await fetch(`${API_BASE_URL}/students/${matrikelnummer}`, {
                 method: 'DELETE'
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             await loadStudents();
-
-            const detailsContainer = document.getElementById('studentDetails');
-            detailsContainer.className = 'student-details empty';
-            detailsContainer.textContent = 'Wählen Sie einen Studenten aus der Liste aus';
-
-            selectedStudent = null;
+            renderStudentsList(AppState.students);
+            updateStudentsStats();
+            document.getElementById('studentDetails').className = 'details-panel empty';
+            document.getElementById('studentDetails').textContent = 'Wählen Sie einen Studenten aus der Liste aus';
             updateStatus('Student gelöscht');
-
         } catch (error) {
-            console.error('Fehler beim Löschen des Studenten:', error);
-            showError('Fehler beim Löschen: ' + error.message);
+            console.error('Error deleting student:', error);
+            alert('Fehler beim Löschen: ' + error.message);
         }
     }
 
-    // Update status
+    function openEditStudentModal(matrikelnummer) {
+        // Implement edit functionality
+        alert('Bearbeiten-Funktion wird implementiert für Student: ' + matrikelnummer);
+    }
+
+    function editThesis(id) {
+        openAddThesisModal();
+    }
+
+    // ==================== FILTER FUNCTIONS ====================
+
+    function filterStudents(searchTerm) {
+        let filtered = AppState.students;
+        if (searchTerm) {
+            filtered = AppState.students.filter(s =>
+                `${s.vorname} ${s.nachname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                s.mail.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        renderStudentsList(filtered);
+        document.getElementById('visibleStudentsCount').textContent = filtered.length;
+    }
+
+    function filterOverviewTheses(searchTerm) {
+        renderOverviewTheses();
+    }
+
+    // ==================== UTILITY FUNCTIONS ====================
+
+    function updateStudentsStats() {
+        document.getElementById('totalStudentsCount').textContent = AppState.students.length;
+        document.getElementById('visibleStudentsCount').textContent = AppState.students.length;
+    }
+
     function updateStatus(message) {
         const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} Uhr`;
-        document.getElementById('statusText').textContent = `${message} | ${timeStr}`;
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        document.getElementById('statusText').textContent = `${message} | ${timeStr} Uhr`;
     }
 
-    // Show error
-    function showError(message) {
-        const errorDiv = document.getElementById('errorMessage');
-        errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
-    // Close modal when clicking outside
-    document.getElementById('addStudentModal').addEventListener('click', function (event) {
-        if (event.target === this) {
-            closeAddStudentModal();
-        }
+    // ==================== NAVIGATION ====================
+
+    document.addEventListener('click', e => {
+        const link = e.target.closest('[data-view]');
+        if (!link) return;
+
+        e.preventDefault();
+        const viewName = link.dataset.view;
+        if (!viewName) return;
+
+        ViewManager.render(viewName);
     });
 
-    // Initialize on load
-    init();
+    // ==================== INITIALIZATION ====================
+
+    ViewManager.render('overview');
 </script>
 </body>
 </html>

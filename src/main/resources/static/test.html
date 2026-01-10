@@ -51,21 +51,21 @@
         // ==================== VIEW MANAGER ====================
         const ViewManager = {
             views: {},
-            
+
             register(name, viewFunction) {
                 this.views[name] = viewFunction;
             },
-            
+
             render(viewName) {
                 if (!this.views[viewName]) {
                     console.error(`View ${viewName} not found`);
                     return;
                 }
-                
+
                 AppState.currentView = viewName;
                 const appContainer = document.getElementById('app');
                 appContainer.innerHTML = this.views[viewName]();
-                
+
                 // Update navigation
                 document.querySelectorAll('.topnav a').forEach(link => {
                     link.classList.remove('active');
@@ -73,7 +73,7 @@
                         link.classList.add('active');
                     }
                 });
-                
+
                 // Call view-specific init if exists
                 const initFn = window[`init${viewName.charAt(0).toUpperCase() + viewName.slice(1)}View`];
                 if (initFn) initFn();
@@ -89,7 +89,7 @@
                     <div class="dashboard-card">
                         <h3><a data-view="theses"> Arbeiten </a></h3>
                         <div class="dashboard-stat" id="dashThesesCount">0</div>
-                        <div class="dashboard-label">Gesamt</div> 
+                        <div class="dashboard-label">Gesamt</div>
                     </div>
                     <div class="dashboard-card">
                         <h3><a data-view="students"> Studenten</a></h3>
@@ -222,7 +222,7 @@
                     loadTheses(),
                     loadProfessors()
                 ]);
-                
+
                 document.getElementById('dashStudentsCount').textContent = AppState.students.length;
                 document.getElementById('dashThesesCount').textContent = AppState.theses.length;
                 document.getElementById('dashProfessorsCount').textContent = AppState.professors.length;
@@ -367,7 +367,7 @@
         function displayStudentDetails(student) {
             const container = document.getElementById('studentDetails');
             const initials = student.vorname.charAt(0) + student.nachname.charAt(0);
-            
+
             container.className = 'details-panel';
             container.innerHTML = `
                 <div class="detail-header">
@@ -441,7 +441,7 @@
         function displayProfessorDetails(prof) {
             const container = document.getElementById('professorDetails');
             const initials = prof.name.split(' ').map(n => n.charAt(0)).join('');
-            
+
             container.className = 'details-panel';
             container.innerHTML = `
                 <div class="detail-header">
@@ -473,7 +473,7 @@
         function filterStudents(searchTerm) {
             let filtered = AppState.students;
             if (searchTerm) {
-                filtered = AppState.students.filter(s => 
+                filtered = AppState.students.filter(s =>
                     `${s.vorname} ${s.nachname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     s.mail.toLowerCase().includes(searchTerm.toLowerCase())
                 );
@@ -485,7 +485,7 @@
         function filterTheses(searchTerm) {
             let filtered = AppState.theses;
             if (searchTerm) {
-                filtered = AppState.theses.filter(t => 
+                filtered = AppState.theses.filter(t =>
                     t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     t.student.toLowerCase().includes(searchTerm.toLowerCase())
                 );
@@ -497,7 +497,7 @@
         function filterProfessors(searchTerm) {
             let filtered = AppState.professors;
             if (searchTerm) {
-                filtered = AppState.professors.filter(p => 
+                filtered = AppState.professors.filter(p =>
                     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     p.email.toLowerCase().includes(searchTerm.toLowerCase())
                 );
@@ -595,7 +595,7 @@
 
         async function submitNewStudent(event) {
             event.preventDefault();
-            
+
             const newStudent = {
                 vorname: document.getElementById('studentFirstName').value,
                 nachname: document.getElementById('studentLastName').value,
@@ -612,7 +612,7 @@
                 });
 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
+
                 await loadStudents();
                 renderStudentsList(AppState.students);
                 updateStudentsStats();
@@ -626,14 +626,14 @@
 
         async function deleteStudent(matrikelnummer) {
             if (!confirm('Student wirklich löschen?')) return;
-            
+
             try {
                 const response = await fetch(`${API_BASE_URL}/students/${matrikelnummer}`, {
                     method: 'DELETE'
                 });
-                
+
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
+
                 await loadStudents();
                 renderStudentsList(AppState.students);
                 updateStudentsStats();
