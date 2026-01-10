@@ -14,7 +14,7 @@ public class ProfIsApplication {
 
     public static void main(String[] args) {
         // Test der SQLite Datenbank
-        testDatabase();
+        //testDatabase();
         
         SpringApplication.run(ProfIsApplication.class, args);
     }
