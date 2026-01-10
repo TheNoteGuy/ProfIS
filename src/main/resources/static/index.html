@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProfIS - Professoren-Informationssystem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #161616;
+            color: #e4e4e4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 16px;
+            position: relative;
+        }
+
+        .top-bar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .action-button {
+            background-color: #4a9eff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-button:hover {
+            background-color: #5aa9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+        }
+
+        .action-button svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.5;
+        }
+
+        .global-search {
+            flex: 1;
+            max-width: 400px;
+            background-color: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #e4e4e4;
+            transition: all 0.2s;
+        }
+
+        .global-search::placeholder {
+            color: #666;
+        }
+
+        .global-search:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background-color: #1a1a1a;
+        }
+
+        .quick-stats {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #b8b8b8;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            color: #4a9eff;
+            font-weight: 600;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .student-details {
+            flex: 1;
+            background-color: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .student-details.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .student-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #4a9eff, #6bb5ff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .detail-header-info {
+            flex: 1;
+        }
+
+        .detail-header-info h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e4e4e4;
+            margin-bottom: 4px;
+        }
+
+        .detail-header-info p {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-button {
+            width: 36px;
+            height: 36px;
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-button:hover {
+            background-color: #2a2a2a;
+            border-color: #4a9eff;
+        }
+
+        .icon-button svg {
+            width: 18px;
+            height: 18px;
+            stroke: #b8b8b8;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .icon-button:hover svg {
+            stroke: #4a9eff;
+        }
+
+        .icon-button.delete:hover {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .icon-button.delete:hover svg {
+            stroke: #ffffff;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .detail-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .detail-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: #e4e4e4;
+            background-color: #252525;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+
+        .student-list-sidebar {
+            width: 320px;
+            background-color: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e4e4e4;
+        }
+
+        .sidebar-count {
+            font-size: 13px;
+            color: #888;
+            background-color: #252525;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .search-box {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #e4e4e4;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .search-box::placeholder {
+            color: #666;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background-color: #1a1a1a;
+        }
+
+        .student-item {
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .student-item:hover {
+            background-color: #2a2a2a;
+            border-color: #4a4a4a;
+        }
+
+        .student-item.active {
+            background-color: #1a3a5a;
+            border-color: #4a9eff;
+        }
+
+        .student-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .student-type-badge {
+            background-color: #4a9eff;
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .student-matrikel {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .student-item-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #e4e4e4;
+            margin-bottom: 4px;
+        }
+
+        .student-item-email {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .bottom-bar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .status-bar {
+            flex: 1;
+            background-color: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e4e4e4;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            background-color: #252525;
+            border: 1px solid #333;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .modal-close svg {
+            width: 16px;
+            height: 16px;
+            stroke: #b8b8b8;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .modal-close:hover svg {
+            stroke: #ffffff;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 13px;
+            color: #b8b8b8;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select {
+            background-color: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #e4e4e4;
+            transition: all 0.2s;
+        }
+
+        .form-input::placeholder {
+            color: #666;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background-color: #1a1a1a;
+        }
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-button {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .modal-button.cancel {
+            background-color: #252525;
+            border: 1px solid #333;
+            color: #b8b8b8;
+        }
+
+        .modal-button.cancel:hover {
+            background-color: #2a2a2a;
+            border-color: #4a4a4a;
+        }
+
+        .modal-button.primary {
+            background-color: #4a9eff;
+            color: #ffffff;
+        }
+
+        .modal-button.primary:hover {
+            background-color: #5aa9ff;
+        }
+
+        .error-message {
+            background-color: #4a1a1a;
+            border: 1px solid #e74c3c;
+            color: #ff6b6b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="action-button" onclick="openAddStudentModal()">
+        <svg viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Neuer Student
+    </button>
+
+    <input type="text" class="global-search" placeholder="Studenten durchsuchen..." oninput="filterStudents(this.value)">
+
+    <div class="quick-stats">
+        <div class="stat-item">
+            <span>Studenten:</span>
+            <span class="stat-value" id="totalCount">0</span>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="student-details empty" id="studentDetails">
+        Wählen Sie einen Studenten aus der Liste aus
+    </div>
+
+    <div class="student-list-sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Studenten</div>
+            <div class="sidebar-count" id="visibleCount">0</div>
+        </div>
+
+        <div id="studentList"></div>
+    </div>
+</div>
+
+<div class="bottom-bar">
+    <div class="status-bar">
+        <div class="status-indicator"></div>
+        <span class="status-text" id="statusText">Verbunden mit API</span>
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="addStudentModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Neuen Studenten anlegen</div>
+            <div class="modal-close" onclick="closeAddStudentModal()">
+                <svg viewBox="0 0 24 24">
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                </svg>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div id="errorMessage"></div>
+            <form id="addStudentForm" onsubmit="submitNewStudent(event)">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="form-label">Vorname *</label>
+                        <input type="text" class="form-input" id="studentFirstName" required placeholder="Anna">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Nachname *</label>
+                        <input type="text" class="form-input" id="studentLastName" required placeholder="Schmidt">
+                    </div>
+
+                    <div class="form-field full-width">
+                        <label class="form-label">E-Mail *</label>
+                        <input type="email" class="form-input" id="studentEmail" required
+                               placeholder="anna.schmidt@student.th-mittelhessen.de">
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Studiengang *</label>
+                        <select class="form-select" id="studentProgram" required>
+                            <option value="">Bitte wählen</option>
+                            <option value="1">BSc Wirtschaftsinformatik</option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="studentScheinfrei">
+                            <span class="form-label">Scheinfrei</span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-button cancel" onclick="closeAddStudentModal()">Abbrechen</button>
+            <button class="modal-button primary" onclick="document.getElementById('addStudentForm').requestSubmit()">
+                Anlegen
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // API Base URL
+    const API_BASE_URL = 'http://localhost:8080/api';
+
+    let students = [];
+    let selectedStudent = null;
+    let filteredStudents = [];
+
+    // Initialize
+    async function init() {
+        await loadStudents();
+    }
+
+    // Load students from API
+    async function loadStudents() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/students`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            students = await response.json();
+            filteredStudents = [...students];
+            renderStudentList(filteredStudents);
+            updateStats();
+            updateStatus('Studenten geladen');
+        } catch (error) {
+            console.error('Fehler beim Laden der Studenten:', error);
+            updateStatus('Fehler: Keine Verbindung zur API');
+            showError('Fehler beim Laden der Studenten: ' + error.message);
+        }
+    }
+
+    // Render student list
+    function renderStudentList(studentsToShow) {
+        const listContainer = document.getElementById('studentList');
+        listContainer.innerHTML = '';
+
+        if (studentsToShow.length === 0) {
+            listContainer.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Keine Studenten gefunden</div>';
+            return;
+        }
+
+        studentsToShow.forEach(student => {
+            const item = document.createElement('div');
+            item.className = 'student-item';
+            if (selectedStudent && selectedStudent.matrikelnummer === student.matrikelnummer) {
+                item.classList.add('active');
+            }
+
+            item.innerHTML = `
+                <div class="student-item-header">
+                    <div class="student-type-badge">Student</div>
+                    <div class="student-matrikel">Mat.-Nr. ${student.matrikelnummer}</div>
+                </div>
+                <div class="student-item-name">${student.vorname} ${student.nachname}</div>
+                <div class="student-item-email">${student.mail}</div>
+            `;
+
+            item.onclick = () => selectStudent(student);
+            listContainer.appendChild(item);
+        });
+
+        document.getElementById('visibleCount').textContent = studentsToShow.length;
+    }
+
+    // Select student
+    async function selectStudent(student) {
+        selectedStudent = student;
+        renderStudentList(filteredStudents);
+        displayStudentDetails(student);
+    }
+
+    // Display student details
+    function displayStudentDetails(student) {
+        const detailsContainer = document.getElementById('studentDetails');
+        detailsContainer.className = 'student-details';
+
+        const initials = student.vorname.charAt(0) + student.nachname.charAt(0);
+
+        detailsContainer.innerHTML = `
+            <div class="detail-header">
+                <div class="student-icon">${initials}</div>
+                <div class="detail-header-info">
+                    <h2>${student.vorname} ${student.nachname}</h2>
+                    <p>Matrikelnummer: ${student.matrikelnummer}</p>
+                </div>
+                <div class="detail-actions">
+                    <div class="icon-button delete" onclick="deleteStudent()" title="Löschen">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-grid">
+                <div class="detail-field">
+                    <div class="detail-label">Vorname</div>
+                    <div class="detail-value">${student.vorname}</div>
+                </div>
+
+                <div class="detail-field">
+                    <div class="detail-label">Nachname</div>
+                    <div class="detail-value">${student.nachname}</div>
+                </div>
+
+                <div class="detail-field full-width">
+                    <div class="detail-label">E-Mail</div>
+                    <div class="detail-value">${student.mail}</div>
+                </div>
+
+                <div class="detail-field">
+                    <div class="detail-label">Matrikelnummer</div>
+                    <div class="detail-value">${student.matrikelnummer}</div>
+                </div>
+
+                <div class="detail-field">
+                    <div class="detail-label">Studiengang-ID</div>
+                    <div class="detail-value">${student.idStudiengang}</div>
+                </div>
+
+                <div class="detail-field">
+                    <div class="detail-label">Scheinfrei</div>
+                    <div class="detail-value">${student.scheinfrei ? 'Ja' : 'Nein'}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Filter students
+    function filterStudents(searchTerm) {
+        if (searchTerm) {
+            filteredStudents = students.filter(student => {
+                const name = `${student.vorname} ${student.nachname}`.toLowerCase();
+                const email = student.mail.toLowerCase();
+                const search = searchTerm.toLowerCase();
+                return name.includes(search) || email.includes(search);
+            });
+        } else {
+            filteredStudents = [...students];
+        }
+
+        renderStudentList(filteredStudents);
+    }
+
+    // Update stats
+    function updateStats() {
+        document.getElementById('totalCount').textContent = students.length;
+    }
+
+    // Open add student modal
+    function openAddStudentModal() {
+        document.getElementById('addStudentModal').classList.add('active');
+        document.getElementById('errorMessage').innerHTML = '';
+    }
+
+    // Close add student modal
+    function closeAddStudentModal() {
+        document.getElementById('addStudentModal').classList.remove('active');
+        document.getElementById('addStudentForm').reset();
+        document.getElementById('errorMessage').innerHTML = '';
+    }
+
+    // Submit new student
+    async function submitNewStudent(event) {
+        event.preventDefault();
+
+        const newStudent = {
+            vorname: document.getElementById('studentFirstName').value,
+            nachname: document.getElementById('studentLastName').value,
+            mail: document.getElementById('studentEmail').value,
+            scheinfrei: document.getElementById('studentScheinfrei').checked,
+            idStudiengang: parseInt(document.getElementById('studentProgram').value)
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/students`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newStudent)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const createdStudent = await response.json();
+
+            await loadStudents();
+            closeAddStudentModal();
+            updateStatus('Student erfolgreich angelegt');
+            selectStudent(createdStudent);
+
+        } catch (error) {
+            console.error('Fehler beim Erstellen des Studenten:', error);
+            showError('Fehler beim Erstellen: ' + error.message);
+        }
+    }
+
+    // Delete student
+    async function deleteStudent() {
+        if (!selectedStudent) return;
+
+        const confirmed = confirm(`Möchten Sie ${selectedStudent.vorname} ${selectedStudent.nachname} wirklich löschen?`);
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/students/${selectedStudent.matrikelnummer}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            await loadStudents();
+
+            const detailsContainer = document.getElementById('studentDetails');
+            detailsContainer.className = 'student-details empty';
+            detailsContainer.textContent = 'Wählen Sie einen Studenten aus der Liste aus';
+
+            selectedStudent = null;
+            updateStatus('Student gelöscht');
+
+        } catch (error) {
+            console.error('Fehler beim Löschen des Studenten:', error);
+            showError('Fehler beim Löschen: ' + error.message);
+        }
+    }
+
+    // Update status
+    function updateStatus(message) {
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} Uhr`;
+        document.getElementById('statusText').textContent = `${message} | ${timeStr}`;
+    }
+
+    // Show error
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('addStudentModal').addEventListener('click', function (event) {
+        if (event.target === this) {
+            closeAddStudentModal();
+        }
+    });
+
+    // Initialize on load
+    init();
+</script>
+</body>
+</html>
