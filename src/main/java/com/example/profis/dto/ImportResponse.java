@@ -11,10 +11,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImportResponse {
-    private String status; // SUCCESS, PARTIAL, FAILED
-    private Integer importedRecords;
-    private Integer skippedRecords;
-    private List<ImportError> errors;
+    private final String status; // SUCCESS, PARTIAL, FAILED
+    private final Integer importedRecords;
+    private final Integer skippedRecords;
+    private final List<ImportError> errors;
     
     public ImportResponse(String status) {
         this.status = status;

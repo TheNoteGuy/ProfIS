@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class Connector {
 
-    private String dbPath;
+    private final String dbPath;
 
     private Connection connection;
 
