@@ -482,8 +482,6 @@ function displayStudentDetails(student) {
                 <div class="detail-value">${student.idStudiengang}</div>
             </div>
             <div class="detail-field">
-                <div class="detail-label">Scheinfrei</div>
-                <div class="detail-value">${student.scheinfrei ? 'Ja' : 'Nein'}</div>
             </div>
         </div>
     `;
@@ -679,10 +677,7 @@ function openAddStudentModal() {
                                 </select>
                             </div>
                             <div class="form-field">
-                                <label class="form-checkbox" style="visibility: hidden">
-                                    <input type="checkbox" id="studentScheinfrei"style="visibility: hidden">
-                                    <span class="form-label"style="visibility: hidden">Scheinfrei</span>
-                                </label>
+
                             </div>
                         </div>
                     </form>
