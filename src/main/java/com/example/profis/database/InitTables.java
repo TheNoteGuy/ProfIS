@@ -32,6 +32,8 @@ public class InitTables {
                     id_fachbereich INTEGER NOT NULL,
                     titel_nach_abschluss TEXT NOT NULL,
                     id_art_abschluss INTEGER NOT NULL,
+                    sws_rate_supervisor REAL DEFAULT 0.2,
+                    sws_rate_cosupervisor REAL DEFAULT 0.1,
                     FOREIGN KEY (id_fachbereich) REFERENCES Fachbereiche(id_fachbereich),
                     FOREIGN KEY (id_art_abschluss) REFERENCES Art_Abschluesse(id_art_abschluss)
                 )
@@ -65,11 +67,11 @@ public class InitTables {
                 )
             """);
 
-            // NEU: Tabelle: Semester
+            // Tabelle: Semester
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS Semester (
                     id_semester INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
+                    name TEXT NOT NULL UNIQUE,
                     type TEXT CHECK(type IN ('WINTER', 'SUMMER')),
                     start_date TEXT NOT NULL,
                     end_date TEXT NOT NULL,
@@ -77,13 +79,14 @@ public class InitTables {
                 )
             """);
 
-            // Tabelle: Wissenschaftliche_Arbeiten
+            // Tabelle: Wissenschaftliche_Arbeiten - MIT SEMESTER-ZUORDNUNG
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS Wissenschaftliche_Arbeiten (
                     id_wissenschaftliche_arbeiten INTEGER PRIMARY KEY AUTOINCREMENT,
                     matrikelnummer INTEGER NOT NULL,
                     id_erstreferent INTEGER NOT NULL,
                     id_korreferent INTEGER NOT NULL,
+                    id_semester INTEGER,
                     titel TEXT NOT NULL,
                     start_datum TEXT NOT NULL,
                     abgabe_datum TEXT,
@@ -96,7 +99,8 @@ public class InitTables {
                     note_kolloquium_korreferent REAL,
                     FOREIGN KEY (matrikelnummer) REFERENCES Studenten(matrikelnummer),
                     FOREIGN KEY (id_erstreferent) REFERENCES Referenten(id_referent),
-                    FOREIGN KEY (id_korreferent) REFERENCES Referenten(id_referent)
+                    FOREIGN KEY (id_korreferent) REFERENCES Referenten(id_referent),
+                    FOREIGN KEY (id_semester) REFERENCES Semester(id_semester)
                 )
             """);
 
@@ -107,7 +111,6 @@ public class InitTables {
 
     private static void insertTestDataIfNeeded(Connection connection) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            // Prüfen ob bereits Daten vorhanden sind
             var rs = stmt.executeQuery("SELECT COUNT(*) FROM Fachbereiche");
             rs.next();
             if (rs.getInt(1) == 0) {
@@ -119,14 +122,20 @@ public class InitTables {
                 stmt.execute("INSERT INTO Art_Abschluesse (name) VALUES ('Bachelor')");
                 stmt.execute("INSERT INTO Art_Abschluesse (name) VALUES ('Master')");
 
-                // Studiengänge
-                stmt.execute("INSERT INTO Studiengaenge (id_fachbereich, titel_nach_abschluss, id_art_abschluss) VALUES (1, 'BSc Wirtschaftsinformatik', 1)");
-                stmt.execute("INSERT INTO Studiengaenge (id_fachbereich, titel_nach_abschluss, id_art_abschluss) VALUES (1, 'MSc Wirtschaftsinformatik', 2)");
+                // Studiengänge mit SWS-Rates
+                stmt.execute("""
+                    INSERT INTO Studiengaenge (id_fachbereich, titel_nach_abschluss, id_art_abschluss, sws_rate_supervisor, sws_rate_cosupervisor) 
+                    VALUES (1, 'BSc Wirtschaftsinformatik', 1, 0.2, 0.1)
+                """);
+                stmt.execute("""
+                    INSERT INTO Studiengaenge (id_fachbereich, titel_nach_abschluss, id_art_abschluss, sws_rate_supervisor, sws_rate_cosupervisor) 
+                    VALUES (1, 'MSc Wirtschaftsinformatik', 2, 0.2, 0.15)
+                """);
 
                 // Referenten
                 stmt.execute("""
                     INSERT INTO Referenten (anrede, vorname, nachname, ist_extern, telefon, mail, addresse, kommentar) 
-                    VALUES ('Herr', 'Max', 'Grüne', 0, '0641-309-1234', 'max.gruene@th-mittelhessen.de', 'THM Campus Gießen', 'Professor für Informatik')
+                    VALUES ('Herr', 'Markus', 'Grüne', 0, '0641-309-1234', 'markus.gruene@th-mittelhessen.de', 'THM Campus Gießen', 'Professor für Informatik')
                 """);
                 stmt.execute("""
                     INSERT INTO Referenten (anrede, vorname, nachname, ist_extern, telefon, mail, addresse, kommentar) 
@@ -136,6 +145,7 @@ public class InitTables {
                 // Semester
                 stmt.execute("INSERT INTO Semester (name, type, start_date, end_date, is_current) VALUES ('WS 2024/25', 'WINTER', '2024-10-01', '2025-03-31', 1)");
                 stmt.execute("INSERT INTO Semester (name, type, start_date, end_date, is_current) VALUES ('SS 2025', 'SUMMER', '2025-04-01', '2025-09-30', 0)");
+                stmt.execute("INSERT INTO Semester (name, type, start_date, end_date, is_current) VALUES ('WS 2025/26', 'WINTER', '2025-10-01', '2026-03-31', 0)");
             }
             rs.close();
         }
