@@ -1,6 +1,35 @@
 {
+  "name": "profis-desktop",
+  "version": "1.0.0",
+  "description": "ProfIS Desktop App",
+  "main": "src\\main\\java\\com\\example\\profis\\electron/main.js",
+  "scripts": {
+    "electron": "electron .",
+    "electron:build": "electron-builder"
+  },
   "devDependencies": {
-    "electron": "^39.2.7",
-    "electron-builder": "^26.4.0"
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "de.thm.profis",
+    "productName": "ProfIS",
+    "files": [
+      "electron/**/*",
+      "target/profis-*.jar"
+    ],
+    "extraResources": [
+      {
+        "from": "target",
+        "to": "backend",
+        "filter": ["profis-*.jar"]
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"]
+    }
   }
 }
