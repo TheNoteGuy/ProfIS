@@ -1028,8 +1028,14 @@ async function loadProfessorReport(profId) {
 
 async function loadSemesterReport(semId) {
     if (!semId) return;
-    const semTheses = AppState.theses.filter(t => t.semester && t.semester.id == semId);
+
     const content = document.getElementById('semesterReportContent');
+    content.innerHTML = '<div style="padding: 32px;">Lade...</div>';
+
+    // Call backend statt local filter!
+    const response = await fetch(`/api/theses/by-semester/${semId}`);
+    const semTheses = await response.json();
+
     content.innerHTML = `
         <div style="margin: 16px 0;">
             <div style="color: var(--accent-color); font-size: 24px; font-weight: bold;">

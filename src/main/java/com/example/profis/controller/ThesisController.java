@@ -36,6 +36,16 @@ public class ThesisController {
         }
     }
 
+    @GetMapping("/by-semester/{semesterId}")
+    public ResponseEntity<List<ThesisResponse>> getThesesBySemester(@PathVariable Long semesterId) {
+        try {
+            List<ThesisResponse> theses = thesisService.getThesesBySemester(semesterId);
+            return ResponseEntity.ok(theses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ThesisResponse> getThesisById(@PathVariable Long id) {
         try {

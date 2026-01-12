@@ -9,6 +9,7 @@ import com.example.profis.repository.ReferentRepository;
 import com.example.profis.repository.StudentRepository;
 import com.example.profis.repository.WissenschaftlicheArbeitRepository;
 import org.springframework.stereotype.Service;
+import com.example.profis.service.SwsCalculationService.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,13 +23,15 @@ public class ThesisService {
     private final WissenschaftlicheArbeitRepository thesisRepository;
     private final StudentRepository studentRepository;
     private final ReferentRepository professorRepository;
+    private final SwsCalculationService swsCalculationService;
 
     public ThesisService(WissenschaftlicheArbeitRepository thesisRepository,
                         StudentRepository studentRepository,
-                        ReferentRepository professorRepository) {
+                        ReferentRepository professorRepository,SwsCalculationService swsCalculationService) {
         this.thesisRepository = thesisRepository;
         this.studentRepository = studentRepository;
         this.professorRepository = professorRepository;
+        this.swsCalculationService = swsCalculationService;
     }
 
     public List<ThesisResponse> getAllTheses() {
@@ -44,6 +47,20 @@ public class ThesisService {
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching theses", e);
         }
+    }
+
+    public List<ThesisResponse> getThesesBySemester(Long semesterId) throws SQLException {
+        List<WissenschaftlicheArbeit> allTheses = thesisRepository.findAll();
+        List<ThesisResponse> result = new ArrayList<>();
+
+        for (WissenschaftlicheArbeit thesis : allTheses) {
+            // Nutze die EXISTING thesisBelongsToSemester logic aus SwsCalculationService!
+            if (swsCalculationService.thesisBelongsToSemester(thesis, semesterId)) {
+                result.add(mapToResponse(thesis));
+            }
+        }
+
+        return result;
     }
 
     public ThesisResponse getThesisById(Long id) {
