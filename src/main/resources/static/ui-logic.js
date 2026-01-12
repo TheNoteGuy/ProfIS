@@ -677,9 +677,9 @@ function openAddStudentModal() {
                                 </select>
                             </div>
                             <div class="form-field">
-                                <label class="form-checkbox">
-                                    <input type="checkbox" id="studentScheinfrei">
-                                    <span class="form-label">Scheinfrei</span>
+                                <label class="form-checkbox" style="visibility: hidden">
+                                    <input type="checkbox" id="studentScheinfrei"style="visibility: hidden">
+                                    <span class="form-label"style="visibility: hidden">Scheinfrei</span>
                                 </label>
                             </div>
                         </div>

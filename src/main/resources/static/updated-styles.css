@@ -392,7 +392,7 @@ body {
 }
 
 .icon-button {
-    width: 40px;
+    width: 80px;
     height: 40px;
     background: var(--tertiary-bg);
     border: 1px solid var(--border-color);
@@ -558,7 +558,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
     width: 90%;
-    max-width: 600px;
+    max-width: 1200px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: var(--shadow-xl);
