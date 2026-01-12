@@ -4,364 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProfIS - Professoren-Informationssystem</title>
-    <!--Verlinkung der Css-Styles -->
     <link rel="stylesheet" href="updated-styles.css">
 </head>
 <body>
-
-<div class="top-bar">
-    <button class="action-button" onclick="openAddStudentModal()">
-        <svg viewBox="0 0 24 24">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        Neuer Student
-    </button>
-
-    <input type="text" class="global-search" placeholder="Studenten durchsuchen..." oninput="filterStudents(this.value)">
-
-    <div class="quick-stats">
-        <div class="stat-item">
-            <span>Studenten:</span>
-            <span class="stat-value" id="totalCount">0</span>
+<!-- Navigation -->
+<nav class="topnav">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <svg class="nav-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <span>ProfIS</span>
+        </div>
+        <div class="nav-links">
+            <a class="nav-link active" data-view="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Übersicht</span>
+            </a>
+            <a class="nav-link" data-view="students">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Studenten</span>
+            </a>
+            <a class="nav-link" data-view="theses">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                <span>Arbeiten</span>
+            </a>
+            <a class="nav-link" data-view="professors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Professoren</span>
+            </a>
+            <a class="nav-link" data-view="reports">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span>Reports</span>
+            </a>
+            <a class="nav-link" data-view="config">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 6v6m8.66-15l-3 5.196M8.34 12.804l-3 5.196M23 12h-6m-6 0H5m15.66 3.804l-3-5.196M8.34 6.196l-3-5.196"/>
+                </svg>
+                <span>Konfiguration</span>
+            </a>
         </div>
     </div>
-</div>
+</nav>
 
-<div class="main-content">
-    <div class="student-details empty" id="studentDetails">
-        Wählen Sie einen Studenten aus der Liste aus
-    </div>
+<!-- Main App Container -->
+<div id="app"></div>
 
-    <div class="student-list-sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">Studenten</div>
-            <div class="sidebar-count" id="visibleCount">0</div>
-        </div>
-
-        <div id="studentList"></div>
-    </div>
-</div>
-
+<!-- Bottom Status Bar -->
 <div class="bottom-bar">
     <div class="status-bar">
         <div class="status-indicator"></div>
-        <span class="status-text" id="statusText">Verbunden mit API</span>
+        <span class="status-text" id="statusText">System bereit</span>
     </div>
 </div>
 
-<!-- Add Student Modal -->
-<div class="modal-overlay" id="addStudentModal">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title">Neuen Studenten anlegen</div>
-            <div class="modal-close" onclick="closeAddStudentModal()">
-                <svg viewBox="0 0 24 24">
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                </svg>
-            </div>
-        </div>
-        <div class="modal-body">
-            <div id="errorMessage"></div>
-            <form id="addStudentForm" onsubmit="submitNewStudent(event)">
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label class="form-label">Vorname *</label>
-                        <input type="text" class="form-input" id="studentFirstName" required placeholder="Anna">
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Nachname *</label>
-                        <input type="text" class="form-input" id="studentLastName" required placeholder="Schmidt">
-                    </div>
+<!-- Modals Container -->
+<div id="modals"></div>
 
-                    <div class="form-field full-width">
-                        <label class="form-label">E-Mail *</label>
-                        <input type="email" class="form-input" id="studentEmail" required
-                               placeholder="anna.schmidt@student.th-mittelhessen.de">
-                    </div>
-
-                    <div class="form-field">
-                        <label class="form-label">Studiengang *</label>
-                        <select class="form-select" id="studentProgram" required>
-                            <option value="">Bitte wählen</option>
-                            <option value="1">BSc Wirtschaftsinformatik</option>
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label class="form-checkbox">
-                            <input type="checkbox" id="studentScheinfrei">
-                            <span class="form-label">Scheinfrei</span>
-                        </label>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="modal-button cancel" onclick="closeAddStudentModal()">Abbrechen</button>
-            <button class="modal-button primary" onclick="document.getElementById('addStudentForm').requestSubmit()">
-                Anlegen
-            </button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // API Base URL
-    const API_BASE_URL = 'http://localhost:8080/api';
-
-    let students = [];
-    let selectedStudent = null;
-    let filteredStudents = [];
-
-    // Initialize
-    async function init() {
-        await loadStudents();
-    }
-
-    // Load students from API
-    async function loadStudents() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/students`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            students = await response.json();
-            filteredStudents = [...students];
-            renderStudentList(filteredStudents);
-            updateStats();
-            updateStatus('Studenten geladen');
-        } catch (error) {
-            console.error('Fehler beim Laden der Studenten:', error);
-            updateStatus('Fehler: Keine Verbindung zur API');
-            showError('Fehler beim Laden der Studenten: ' + error.message);
-        }
-    }
-
-    // Render student list
-    function renderStudentList(studentsToShow) {
-        const listContainer = document.getElementById('studentList');
-        listContainer.innerHTML = '';
-
-        if (studentsToShow.length === 0) {
-            listContainer.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Keine Studenten gefunden</div>';
-            return;
-        }
-
-        studentsToShow.forEach(student => {
-            const item = document.createElement('div');
-            item.className = 'student-item';
-            if (selectedStudent && selectedStudent.matrikelnummer === student.matrikelnummer) {
-                item.classList.add('active');
-            }
-
-            item.innerHTML = `
-                <div class="student-item-header">
-                    <div class="student-type-badge">Student</div>
-                    <div class="student-matrikel">Mat.-Nr. ${student.matrikelnummer}</div>
-                </div>
-                <div class="student-item-name">${student.vorname} ${student.nachname}</div>
-                <div class="student-item-email">${student.mail}</div>
-            `;
-
-            item.onclick = () => selectStudent(student);
-            listContainer.appendChild(item);
-        });
-
-        document.getElementById('visibleCount').textContent = studentsToShow.length;
-    }
-
-    // Select student
-    async function selectStudent(student) {
-        selectedStudent = student;
-        renderStudentList(filteredStudents);
-        displayStudentDetails(student);
-    }
-
-    // Display student details
-    function displayStudentDetails(student) {
-        const detailsContainer = document.getElementById('studentDetails');
-        detailsContainer.className = 'student-details';
-
-        const initials = student.vorname.charAt(0) + student.nachname.charAt(0);
-
-        detailsContainer.innerHTML = `
-            <div class="detail-header">
-                <div class="student-icon">${initials}</div>
-                <div class="detail-header-info">
-                    <h2>${student.vorname} ${student.nachname}</h2>
-                    <p>Matrikelnummer: ${student.matrikelnummer}</p>
-                </div>
-                <div class="detail-actions">
-                    <div class="icon-button delete" onclick="deleteStudent()" title="Löschen">
-                        <svg viewBox="0 0 24 24">
-                            <polyline points="3 6 5 6 21 6"/>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-grid">
-                <div class="detail-field">
-                    <div class="detail-label">Vorname</div>
-                    <div class="detail-value">${student.vorname}</div>
-                </div>
-
-                <div class="detail-field">
-                    <div class="detail-label">Nachname</div>
-                    <div class="detail-value">${student.nachname}</div>
-                </div>
-
-                <div class="detail-field full-width">
-                    <div class="detail-label">E-Mail</div>
-                    <div class="detail-value">${student.mail}</div>
-                </div>
-
-                <div class="detail-field">
-                    <div class="detail-label">Matrikelnummer</div>
-                    <div class="detail-value">${student.matrikelnummer}</div>
-                </div>
-
-                <div class="detail-field">
-                    <div class="detail-label">Studiengang-ID</div>
-                    <div class="detail-value">${student.idStudiengang}</div>
-                </div>
-
-                <div class="detail-field">
-                    <div class="detail-label">Scheinfrei</div>
-                    <div class="detail-value">${student.scheinfrei ? 'Ja' : 'Nein'}</div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Filter students
-    function filterStudents(searchTerm) {
-        if (searchTerm) {
-            filteredStudents = students.filter(student => {
-                const name = `${student.vorname} ${student.nachname}`.toLowerCase();
-                const email = student.mail.toLowerCase();
-                const search = searchTerm.toLowerCase();
-                return name.includes(search) || email.includes(search);
-            });
-        } else {
-            filteredStudents = [...students];
-        }
-
-        renderStudentList(filteredStudents);
-    }
-
-    // Update stats
-    function updateStats() {
-        document.getElementById('totalCount').textContent = students.length;
-    }
-
-    // Open add student modal
-    function openAddStudentModal() {
-        document.getElementById('addStudentModal').classList.add('active');
-        document.getElementById('errorMessage').innerHTML = '';
-    }
-
-    // Close add student modal
-    function closeAddStudentModal() {
-        document.getElementById('addStudentModal').classList.remove('active');
-        document.getElementById('addStudentForm').reset();
-        document.getElementById('errorMessage').innerHTML = '';
-    }
-
-    // Submit new student
-    async function submitNewStudent(event) {
-        event.preventDefault();
-
-        const newStudent = {
-            vorname: document.getElementById('studentFirstName').value,
-            nachname: document.getElementById('studentLastName').value,
-            mail: document.getElementById('studentEmail').value,
-            scheinfrei: document.getElementById('studentScheinfrei').checked,
-            idStudiengang: parseInt(document.getElementById('studentProgram').value)
-        };
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/students`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newStudent)
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const createdStudent = await response.json();
-
-            await loadStudents();
-            closeAddStudentModal();
-            updateStatus('Student erfolgreich angelegt');
-            selectStudent(createdStudent);
-
-        } catch (error) {
-            console.error('Fehler beim Erstellen des Studenten:', error);
-            showError('Fehler beim Erstellen: ' + error.message);
-        }
-    }
-
-    // Delete student
-    async function deleteStudent() {
-        if (!selectedStudent) return;
-
-        const confirmed = confirm(`Möchten Sie ${selectedStudent.vorname} ${selectedStudent.nachname} wirklich löschen?`);
-        if (!confirmed) return;
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/students/${selectedStudent.matrikelnummer}`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            await loadStudents();
-
-            const detailsContainer = document.getElementById('studentDetails');
-            detailsContainer.className = 'student-details empty';
-            detailsContainer.textContent = 'Wählen Sie einen Studenten aus der Liste aus';
-
-            selectedStudent = null;
-            updateStatus('Student gelöscht');
-
-        } catch (error) {
-            console.error('Fehler beim Löschen des Studenten:', error);
-            showError('Fehler beim Löschen: ' + error.message);
-        }
-    }
-
-    // Update status
-    function updateStatus(message) {
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} Uhr`;
-        document.getElementById('statusText').textContent = `${message} | ${timeStr}`;
-    }
-
-    // Show error
-    function showError(message) {
-        const errorDiv = document.getElementById('errorMessage');
-        errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
-    }
-
-    // Close modal when clicking outside
-    document.getElementById('addStudentModal').addEventListener('click', function (event) {
-        if (event.target === this) {
-            closeAddStudentModal();
-        }
-    });
-
-    // Initialize on load
-    init();
-</script>
+<script src="ui-logic.js"></script>
 </body>
 </html>
