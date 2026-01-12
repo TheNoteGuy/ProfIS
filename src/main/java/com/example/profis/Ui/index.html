@@ -4,752 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProfIS - Professoren-Informationssystem</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #161616;
-            color: #e4e4e4;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .topnav {
-            background-color: #333;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .topnav a {
-            float: left;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-            font-size: 17px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .topnav a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-
-        .topnav a.active {
-            background-color: #4a9eff;
-            color: white;
-        }
-
-        #app {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            gap: 16px;
-            overflow: hidden;
-        }
-
-        .view-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .top-bar {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .action-button {
-            background-color: #4a9eff;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .action-button:hover {
-            background-color: #5aa9ff;
-        }
-
-        .global-search {
-            flex: 1;
-            max-width: 400px;
-            background-color: #0d0d0d;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 14px;
-            color: #e4e4e4;
-        }
-
-        .quick-stats {
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 13px;
-            color: #b8b8b8;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .stat-value {
-            color: #4a9eff;
-            font-weight: 600;
-        }
-
-        .main-content {
-            display: flex;
-            gap: 16px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .details-panel {
-            flex: 1;
-            background-color: #0d0d0d;
-            border: 1px solid #2a2a2a;
-            border-radius: 12px;
-            padding: 32px;
-            overflow-y: auto;
-        }
-
-        .details-panel.empty {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 16px;
-        }
-
-        .list-sidebar {
-            width: 320px;
-            background-color: #0d0d0d;
-            border: 1px solid #2a2a2a;
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            overflow-y: auto;
-        }
-
-        .list-item {
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .list-item:hover {
-            background-color: #2a2a2a;
-        }
-
-        .list-item.active {
-            background-color: #1a3a5a;
-            border-color: #4a9eff;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-
-        .dashboard-card {
-            background-color: #0d0d0d;
-            border: 1px solid #2a2a2a;
-            border-radius: 12px;
-            padding: 24px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-4px);
-            border-color: #4a9eff;
-        }
-
-        .dashboard-stat {
-            font-size: 36px;
-            font-weight: 700;
-            color: #4a9eff;
-            margin-bottom: 8px;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            padding: 24px;
-            border-bottom: 1px solid #2a2a2a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-body {
-            padding: 24px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .form-field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-field.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-input, .form-select {
-            background-color: #0d0d0d;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 14px;
-            color: #e4e4e4;
-        }
-
-        .modal-footer {
-            padding: 24px;
-            border-top: 1px solid #2a2a2a;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-
-        .modal-button {
-            padding: 10px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-        }
-
-        .modal-button.primary {
-            background-color: #4a9eff;
-            color: #ffffff;
-        }
-
-        .modal-button.cancel {
-            background-color: #252525;
-            color: #b8b8b8;
-        }
-
-        .report-card {
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .report-card h3 {
-            margin-bottom: 12px;
-            color: #4a9eff;
-        }
-
-        .progress-bar {
-            background-color: #333;
-            border-radius: 4px;
-            height: 20px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-
-        .progress-fill {
-            background-color: #4a9eff;
-            height: 100%;
-            transition: width 0.3s;
-        }
-
-        .config-section {
-            margin-bottom: 24px;
-        }
-
-        .config-section h3 {
-            margin-bottom: 12px;
-            color: #e4e4e4;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
-
-        th {
-            background-color: #252525;
-            color: #4a9eff;
-        }
-
-        .icon-button {
-            background-color: #252525;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 6px 12px;
-            cursor: pointer;
-            color: #e4e4e4;
-        }
-
-        .icon-button:hover {
-            background-color: #2a2a2a;
-            border-color: #4a9eff;
-        }
-
-        .icon-button.delete:hover {
-            background-color: #e74c3c;
-            border-color: #e74c3c;
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="updated-styles.css">
 </head>
 <body>
-<div class="topnav">
-    <a class="active" data-view="dashboard">Übersicht</a>
-    <a data-view="students">Studenten</a>
-    <a data-view="theses">Arbeiten</a>
-    <a data-view="professors">Professoren</a>
-    <a data-view="reports">Reports</a>
-    <a data-view="config">Konfiguration</a>
+<!-- Navigation -->
+<nav class="topnav">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <svg class="nav-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <span>ProfIS</span>
+        </div>
+        <div class="nav-links">
+            <a class="nav-link active" data-view="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Übersicht</span>
+            </a>
+            <a class="nav-link" data-view="students">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Studenten</span>
+            </a>
+            <a class="nav-link" data-view="theses">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                <span>Arbeiten</span>
+            </a>
+            <a class="nav-link" data-view="professors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Professoren</span>
+            </a>
+            <a class="nav-link" data-view="reports">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span>Reports</span>
+            </a>
+            <a class="nav-link" data-view="config">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 6v6m8.66-15l-3 5.196M8.34 12.804l-3 5.196M23 12h-6m-6 0H5m15.66 3.804l-3-5.196M8.34 6.196l-3-5.196"/>
+                </svg>
+                <span>Konfiguration</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main App Container -->
+<div id="app"></div>
+
+<!-- Bottom Status Bar -->
+<div class="bottom-bar">
+    <div class="status-bar">
+        <div class="status-indicator"></div>
+        <span class="status-text" id="statusText">System bereit</span>
+    </div>
 </div>
 
-<div id="app"></div>
+<!-- Modals Container -->
 <div id="modals"></div>
 
-<script>
-    const API_BASE = 'http://localhost:8080/api';
-
-    const AppState = {
-        currentView: 'dashboard',
-        students: [],
-        theses: [],
-        professors: [],
-        semesters: [],
-        programs: []
-    };
-
-    const ViewManager = {
-        views: {},
-        register(name, viewFn) {
-            this.views[name] = viewFn;
-        },
-        render(viewName) {
-            AppState.currentView = viewName;
-            document.getElementById('app').innerHTML = this.views[viewName]();
-            document.querySelectorAll('.topnav a').forEach(link => {
-                link.classList.toggle('active', link.dataset.view === viewName);
-            });
-            const initFn = window[`init${viewName.charAt(0).toUpperCase() + viewName.slice(1)}View`];
-            if (initFn) initFn();
-        }
-    };
-
-    // Dashboard View
-    ViewManager.register('dashboard', () => `
-        <div class="view-container">
-            <div class="dashboard-grid">
-                <div class="dashboard-card" data-view="theses">
-                    <h3>Arbeiten</h3>
-                    <div class="dashboard-stat" id="dashThesesCount">0</div>
-                    <div>Gesamt</div>
-                </div>
-                <div class="dashboard-card" data-view="students">
-                    <h3>Studenten</h3>
-                    <div class="dashboard-stat" id="dashStudentsCount">0</div>
-                    <div>Registriert</div>
-                </div>
-                <div class="dashboard-card" data-view="professors">
-                    <h3>Professoren</h3>
-                    <div class="dashboard-stat" id="dashProfessorsCount">0</div>
-                    <div>Aktiv</div>
-                </div>
-                <div class="dashboard-card" data-view="reports">
-                    <h3>Aktuelles Semester</h3>
-                    <div class="dashboard-stat" id="currentSemester">-</div>
-                    <div id="currentSemesterInfo"></div>
-                </div>
-            </div>
-        </div>
-    `);
-
-    // Reports View
-    ViewManager.register('reports', () => `
-        <div class="view-container">
-            <div class="top-bar">
-                <h2 style="color: #e4e4e4;">Reports & Auswertungen</h2>
-            </div>
-            <div class="main-content" style="display: block; overflow-y: auto;">
-                <div class="report-card">
-                    <h3>SWS-Übersicht nach Professor</h3>
-                    <div style="margin: 16px 0;">
-                        <select id="reportProfessor" class="form-select" onchange="loadProfessorReport(this.value)">
-                            <option value="">Professor auswählen...</option>
-                        </select>
-                    </div>
-                    <div id="professorReportContent"></div>
-                </div>
-
-                <div class="report-card">
-                    <h3>Arbeiten pro Semester</h3>
-                    <div style="margin: 16px 0;">
-                        <select id="reportSemester" class="form-select" onchange="loadSemesterReport(this.value)">
-                            <option value="">Semester auswählen...</option>
-                        </select>
-                    </div>
-                    <div id="semesterReportContent"></div>
-                </div>
-            </div>
-        </div>
-    `);
-
-    // Config View
-    ViewManager.register('config', () => `
-        <div class="view-container">
-            <div class="top-bar">
-                <h2 style="color: #e4e4e4;">Konfiguration</h2>
-            </div>
-            <div class="main-content" style="display: block; overflow-y: auto;">
-                <div class="config-section">
-                    <h3>Semester-Verwaltung</h3>
-                    <button class="action-button" onclick="openAddSemesterModal()">+ Neues Semester</button>
-                    <div style="margin-top: 16px;">
-                        <table id="semestersTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Typ</th>
-                                    <th>Start</th>
-                                    <th>Ende</th>
-                                    <th>Status</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="config-section">
-                    <h3>Studiengänge</h3>
-                    <button class="action-button" onclick="alert('Studiengänge verwalten')">+ Neuer Studiengang</button>
-                    <div style="margin-top: 16px;" id="programsList"></div>
-                </div>
-            </div>
-        </div>
-    `);
-
-    // Init Functions
-    async function initDashboardView() {
-        await Promise.all([loadStudents(), loadTheses(), loadProfessors(), loadSemesters()]);
-        document.getElementById('dashStudentsCount').textContent = AppState.students.length;
-        document.getElementById('dashThesesCount').textContent = AppState.theses.length;
-        document.getElementById('dashProfessorsCount').textContent = AppState.professors.length;
-
-        const currentSem = AppState.semesters.find(s => s.isCurrent);
-        if (currentSem) {
-            document.getElementById('currentSemester').textContent = currentSem.name;
-            document.getElementById('currentSemesterInfo').textContent =
-                `${new Date(currentSem.startDate).toLocaleDateString('de-DE')} - ${new Date(currentSem.endDate).toLocaleDateString('de-DE')}`;
-        }
-    }
-
-    async function initReportsView() {
-        await Promise.all([loadProfessors(), loadSemesters()]);
-
-        const profSelect = document.getElementById('reportProfessor');
-        profSelect.innerHTML = '<option value="">Professor auswählen...</option>' +
-            AppState.professors.map(p => `<option value="${p.id}">${p.fullName}</option>`).join('');
-
-        const semSelect = document.getElementById('reportSemester');
-        semSelect.innerHTML = '<option value="">Semester auswählen...</option>' +
-            AppState.semesters.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-    }
-
-    async function initConfigView() {
-        await loadSemesters();
-        await loadPrograms();
-        renderSemestersTable();
-        renderProgramsList();
-    }
-
-    // Data Loading
-    async function loadStudents() {
-        const res = await fetch(`${API_BASE}/students`);
-        AppState.students = await res.json();
-    }
-
-    async function loadTheses() {
-        const res = await fetch(`${API_BASE}/theses`);
-        AppState.theses = await res.json();
-    }
-
-    async function loadProfessors() {
-        const res = await fetch(`${API_BASE}/professors`);
-        AppState.professors = await res.json();
-    }
-
-    async function loadSemesters() {
-        const res = await fetch(`${API_BASE}/semesters`);
-        AppState.semesters = await res.json();
-    }
-
-    async function loadPrograms() {
-        const res = await fetch(`${API_BASE}/programs`);
-        AppState.programs = await res.json();
-    }
-
-    // Reports
-    async function loadProfessorReport(profId) {
-        if (!profId) return;
-        try {
-            const res = await fetch(`${API_BASE}/reports/sws-calculation?professorId=${profId}`);
-            const data = await res.json();
-
-            const calc = data.swsCalculation;
-            const content = document.getElementById('professorReportContent');
-            content.innerHTML = `
-                <div style="margin: 16px 0;">
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-                        <div>
-                            <div style="color: #888; font-size: 12px;">Gesamt SWS</div>
-                            <div style="color: #4a9eff; font-size: 24px; font-weight: bold;">${calc.totalSws.toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div style="color: #888; font-size: 12px;">Als Betreuer</div>
-                            <div style="color: #4a9eff; font-size: 24px; font-weight: bold;">${calc.swsAsSupervisor.toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div style="color: #888; font-size: 12px;">Als Korreferent</div>
-                            <div style="color: #4a9eff; font-size: 24px; font-weight: bold;">${calc.swsAsCoSupervisor.toFixed(2)}</div>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${(calc.totalSws / calc.maxSwsAllowed * 100)}%;
-                            background-color: ${calc.isOverLimit ? '#e74c3c' : '#4a9eff'};">
-                        </div>
-                    </div>
-                    <div style="color: #888; font-size: 12px; margin-top: 4px;">
-                        ${calc.totalSws.toFixed(2)} von ${calc.maxSwsAllowed.toFixed(2)} SWS belegt
-                        ${calc.isOverLimit ? ' - LIMIT ÜBERSCHRITTEN!' : ''}
-                    </div>
-                </div>
-                <table style="margin-top: 16px;">
-                    <thead><tr><th>Arbeit</th><th>Rolle</th><th>SWS</th></tr></thead>
-                    <tbody>
-                        ${data.breakdown.map(b => `
-                            <tr>
-                                <td>${b.thesisTitle}</td>
-                                <td>${b.role === 'SUPERVISOR' ? 'Betreuer' : 'Korreferent'}</td>
-                                <td>${b.sws.toFixed(2)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    async function loadSemesterReport(semId) {
-        if (!semId) return;
-        const semTheses = AppState.theses.filter(t => t.semester && t.semester.id == semId);
-        const content = document.getElementById('semesterReportContent');
-        content.innerHTML = `
-            <div style="margin: 16px 0;">
-                <div style="color: #4a9eff; font-size: 24px; font-weight: bold;">
-                    ${semTheses.length} Arbeiten
-                </div>
-            </div>
-            <table>
-                <thead><tr><th>Student</th><th>Titel</th><th>Typ</th><th>Status</th></tr></thead>
-                <tbody>
-                    ${semTheses.map(t => `
-                        <tr>
-                            <td>${t.studentName || '-'}</td>
-                            <td>${t.title}</td>
-                            <td>${t.type}</td>
-                            <td>${t.status}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    }
-
-    // Config Functions
-    function renderSemestersTable() {
-        const tbody = document.querySelector('#semestersTable tbody');
-        tbody.innerHTML = AppState.semesters.map(s => `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.type === 'WINTER' ? 'Wintersemester' : 'Sommersemester'}</td>
-                <td>${new Date(s.startDate).toLocaleDateString('de-DE')}</td>
-                <td>${new Date(s.endDate).toLocaleDateString('de-DE')}</td>
-                <td>${s.isCurrent ? '<span style="color: #4ade80;">Aktuell</span>' : '-'}</td>
-                <td>
-                    <button class="icon-button" onclick="editSemester(${s.id})">Bearbeiten</button>
-                    <button class="icon-button delete" onclick="deleteSemester(${s.id})">Löschen</button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function renderProgramsList() {
-        const container = document.getElementById('programsList');
-        container.innerHTML = AppState.programs.map(p => `
-            <div style="background: #252525; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                <div style="font-weight: bold;">${p.degreeTitle}</div>
-                <div style="color: #888; font-size: 13px;">${p.departmentName || 'Unbekannt'} - ${p.degreeTypeName || 'Unbekannt'}</div>
-            </div>
-        `).join('');
-    }
-
-    function openAddSemesterModal() {
-        document.getElementById('modals').innerHTML = `
-            <div class="modal-overlay active">
-                <div class="modal">
-                    <div class="modal-header">
-                        <h3>Neues Semester anlegen</h3>
-                    </div>
-                    <div class="modal-body">
-                        <form id="semesterForm" onsubmit="submitSemester(event)">
-                            <div class="form-grid">
-                                <div class="form-field">
-                                    <label>Name *</label>
-                                    <input type="text" class="form-input" name="name" required placeholder="WS 2025/26">
-                                </div>
-                                <div class="form-field">
-                                    <label>Typ *</label>
-                                    <select class="form-select" name="type" required>
-                                        <option value="WINTER">Wintersemester</option>
-                                        <option value="SUMMER">Sommersemester</option>
-                                    </select>
-                                </div>
-                                <div class="form-field">
-                                    <label>Startdatum *</label>
-                                    <input type="date" class="form-input" name="startDate" required>
-                                </div>
-                                <div class="form-field">
-                                    <label>Enddatum *</label>
-                                    <input type="date" class="form-input" name="endDate" required>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="modal-button cancel" onclick="closeModal()">Abbrechen</button>
-                        <button class="modal-button primary" onclick="document.getElementById('semesterForm').requestSubmit()">Anlegen</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    async function submitSemester(e) {
-        e.preventDefault();
-        const form = e.target;
-        const data = {
-            name: form.name.value,
-            type: form.type.value,
-            startDate: form.startDate.value,
-            endDate: form.endDate.value
-        };
-
-        await fetch(`${API_BASE}/semesters`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        await loadSemesters();
-        renderSemestersTable();
-        closeModal();
-    }
-
-    async function deleteSemester(id) {
-        if (!confirm('Semester wirklich löschen?')) return;
-        await fetch(`${API_BASE}/semesters/${id}`, { method: 'DELETE' });
-        await loadSemesters();
-        renderSemestersTable();
-    }
-
-    function editSemester(id) {
-        alert('Bearbeiten-Funktion noch nicht implementiert für Semester ' + id);
-    }
-
-    function closeModal() {
-        document.getElementById('modals').innerHTML = '';
-    }
-
-    // Navigation
-    document.addEventListener('click', e => {
-        const link = e.target.closest('[data-view]');
-        if (link) {
-            e.preventDefault();
-            ViewManager.render(link.dataset.view);
-        }
-    });
-
-    ViewManager.render('dashboard');
-</script>
+<script src="ui-logic.js"></script>
 </body>
 </html>
