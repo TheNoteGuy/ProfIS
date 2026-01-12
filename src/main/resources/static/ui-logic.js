@@ -277,6 +277,8 @@ async function initConfigView() {
     await loadPrograms();
     renderSemestersTable();
     renderProgramsList();
+    renderSemesterOverview();
+
 }
 
 async function initStudentsView() {
