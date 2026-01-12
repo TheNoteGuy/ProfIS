@@ -893,3 +893,97 @@ tr:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==================== CUSTOM TITLEBAR (INTEGRATED IN NAV) ==================== */
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.topnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    -webkit-app-region: drag;
+    user-select: none;
+    z-index: 1000;
+}
+
+.nav-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 100%;
+    width: 100%;
+}
+
+.nav-brand {
+    -webkit-app-region: no-drag;
+}
+
+.nav-links {
+    -webkit-app-region: no-drag;
+}
+
+.nav-link {
+    -webkit-app-region: no-drag;
+}
+
+.titlebar-drag-spacer {
+    flex: 1;
+    min-width: 100px;
+    height: 100%;
+    -webkit-app-region: drag;
+}
+
+.titlebar-buttons {
+    display: flex;
+    height: 100%;
+    -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+    width: 46px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    color: #e5e5e5;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease;
+    padding: 0;
+    margin: 0;
+}
+
+.titlebar-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.titlebar-btn.close:hover {
+    background: #818df8;
+    color: #fff;
+}
+
+.titlebar-btn svg {
+    pointer-events: none;
+}
+
+.titlebar-btn:active {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.titlebar-btn.close:active {
+    background: #6366f1;
+}
+
+#app {
+    margin-top: 64px;
+}
+
+.titlebar-btn {
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+}

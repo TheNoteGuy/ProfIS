@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="updated-styles.css">
 </head>
 <body>
-<!-- Navigation -->
+<!-- Navigation mit integrierter Titlebar -->
 <nav class="topnav">
     <div class="nav-container">
         <div class="nav-brand">
@@ -68,6 +68,28 @@
                 <span>Konfiguration</span>
             </a>
         </div>
+
+        <!-- Drag Region - fills remaining space -->
+        <div class="titlebar-drag-spacer"></div>
+
+        <!-- Window Control Buttons -->
+        <div class="titlebar-buttons">
+            <button id="min-btn" class="titlebar-btn" title="Minimieren">
+                <svg width="10" height="1" viewBox="0 0 10 1">
+                    <path d="M0,0.5 L10,0.5" stroke="currentColor" stroke-width="1"/>
+                </svg>
+            </button>
+            <button id="max-btn" class="titlebar-btn" title="Maximieren">
+                <svg width="10" height="10" viewBox="0 0 10 10">
+                    <rect x="0.5" y="0.5" width="9" height="9" stroke="currentColor" fill="none" stroke-width="1"/>
+                </svg>
+            </button>
+            <button id="close-btn" class="titlebar-btn close" title="Schließen">
+                <svg width="10" height="10" viewBox="0 0 10 10">
+                    <path d="M0,0 L10,10 M10,0 L0,10" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+            </button>
+        </div>
     </div>
 </nav>
 
@@ -86,5 +108,21 @@
 <div id="modals"></div>
 
 <script src="ui-logic.js"></script>
+<script>
+    // Titlebar button handlers
+    if (window.electronAPI) {
+        document.getElementById('min-btn').addEventListener('click', () => {
+            window.electronAPI.minimizeWindow();
+        });
+
+        document.getElementById('max-btn').addEventListener('click', () => {
+            window.electronAPI.maximizeWindow();
+        });
+
+        document.getElementById('close-btn').addEventListener('click', () => {
+            window.electronAPI.closeWindow();
+        });
+    }
+</script>
 </body>
 </html>

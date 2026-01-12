@@ -1,15 +1,13 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const { spawn } = require('child_process');
 const http = require('http');
+const path = require('path');
 
 let mainWindow;
 let backendProcess = null;
 
 const BACKEND_URL = 'http://localhost:8080';
 
-/**
- * Check if Spring Boot is running
- */
 function checkBackend() {
     return new Promise((resolve) => {
         const req = http.get(BACKEND_URL, (res) => {
@@ -20,9 +18,6 @@ function checkBackend() {
     });
 }
 
-/**
- * Wait for backend to start
- */
 async function waitForBackend(maxAttempts = 30) {
     for (let i = 0; i < maxAttempts; i++) {
         if (await checkBackend()) {
@@ -35,20 +30,27 @@ async function waitForBackend(maxAttempts = 30) {
     return false;
 }
 
-/**
- * Start Spring Boot
- */
 function startBackend() {
     console.log('Starting Spring Boot...');
 
-    // Starte einfach die JAR oder Maven
-    const isWindows = process.platform === 'win32';
-    const mvnCmd = isWindows ? 'mvnw.cmd' : './mvnw';
+    const isDev = !app.isPackaged;
 
-    backendProcess = spawn(mvnCmd, ['spring-boot:run'], {
-        shell: true,
-        stdio: 'inherit' // Zeigt logs in console
-    });
+    if (isDev) {
+        const isWindows = process.platform === 'win32';
+        const mvnCmd = isWindows ? 'mvnw.cmd' : './mvnw';
+
+        backendProcess = spawn(mvnCmd, ['spring-boot:run'], {
+            shell: true,
+            stdio: 'inherit'
+        });
+    } else {
+        const jarPath = path.join(process.resourcesPath, 'backend', 'profis-1.0.0.jar');
+        console.log('JAR path:', jarPath);
+
+        backendProcess = spawn('java', ['-jar', jarPath], {
+            stdio: 'inherit'
+        });
+    }
 
     backendProcess.on('close', (code) => {
         console.log(`Backend stopped with code ${code}`);
@@ -56,9 +58,6 @@ function startBackend() {
     });
 }
 
-/**
- * Stop Spring Boot
- */
 function stopBackend() {
     if (backendProcess) {
         console.log('Stopping backend...');
@@ -67,58 +66,92 @@ function stopBackend() {
     }
 }
 
-/**
- * Create the Electron window
- */
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1400,
         height: 900,
+        minWidth: 1000,
+        minHeight: 700,
         title: 'ProfIS',
+        frame: false,  // ← Frameless!
+        backgroundColor: '#0f0f0f',
         webPreferences: {
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js')  // ← Preload script!
         }
     });
 
-    // Einfach die Spring Boot URL laden!
+    // Load the app
     mainWindow.loadURL(BACKEND_URL);
 
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
+
 }
 
-// App startup
-app.whenReady().then(async () => {
-    console.log('Starting ProfIS...');
+function setupIPC() {
+    ipcMain.on('window-minimize', () => {
+        if (mainWindow) mainWindow.minimize();
+    });
 
-    // Check if backend already running
-    const alreadyRunning = await checkBackend();
-
-    if (!alreadyRunning) {
-        // Start backend
-        startBackend();
-
-        // Wait for it
-        const isReady = await waitForBackend();
-        if (!isReady) {
-            console.error('Backend failed to start!');
-            app.quit();
-            return;
+    ipcMain.on('window-maximize', () => {
+        if (mainWindow) {
+            if (mainWindow.isMaximized()) {
+                mainWindow.unmaximize();
+            } else {
+                mainWindow.maximize();
+            }
         }
-    }
+    });
 
-    // Open window
-    createWindow();
+    ipcMain.on('window-close', () => {
+        if (mainWindow) mainWindow.close();
+    });
+}
+
+app.whenReady().then(async () => {
+    console.log('Electron app is ready');
+
+    setupIPC();
+
+    try {
+        const alreadyRunning = await checkBackend();
+
+        if (!alreadyRunning) {
+            startBackend();
+            const isReady = await waitForBackend();
+            if (!isReady) {
+                console.error('Backend failed to start!');
+                app.quit();
+                return;
+            }
+        }
+
+        createWindow();
+    } catch (error) {
+        console.error('Failed to start application:', error);
+        app.quit();
+    }
 });
 
-// Cleanup
 app.on('window-all-closed', () => {
     stopBackend();
     app.quit();
 });
 
+app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+    }
+});
+
 app.on('before-quit', () => {
     stopBackend();
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
 });
