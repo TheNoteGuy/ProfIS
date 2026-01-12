@@ -131,7 +131,7 @@ ViewManager.register('config', () => `
 
             <div class="config-section">
                 <h3>Studiengänge</h3>
-                <button class="action-button" onclick="alert('Studiengänge verwalten')">
+                <button class="action-button" onclick="openAddProgramModal()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -1162,6 +1162,393 @@ document.addEventListener('click', e => {
     if (!viewName) return;
     ViewManager.render(viewName);
 });
+
+// ==================== STUDIENGANG MODAL ====================
+
+async function openAddProgramModal() {
+    // Lade Fachbereiche und Abschlussarten für die Dropdowns
+    await loadDepartments();
+    await loadDegreeTypes();
+
+    const departmentsOptions = AppState.departments?.map(d =>
+        `<option value="${d.id}">${d.name}</option>`
+    ).join('') || '';
+
+    const degreeTypesOptions = AppState.degreeTypes?.map(dt =>
+        `<option value="${dt.id}">${dt.name}</option>`
+    ).join('') || '';
+
+    document.getElementById('modals').innerHTML = `
+        <div class="modal-overlay active" id="addProgramModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <div class="modal-title">Neuen Studiengang anlegen</div>
+                    <div class="modal-close" onclick="closeModal('addProgramModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="errorMessage"></div>
+                    <form id="addProgramForm" onsubmit="submitNewProgram(event)">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="form-label">Fachbereich *</label>
+                                <select class="form-select" id="programDepartment" required>
+                                    <option value="">Bitte wählen</option>
+                                    ${departmentsOptions}
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Abschlussart *</label>
+                                <select class="form-select" id="programDegreeType" required>
+                                    <option value="">Bitte wählen</option>
+                                    ${degreeTypesOptions}
+                                </select>
+                            </div>
+                            <div class="form-field full-width">
+                                <label class="form-label">Titel nach Abschluss *</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="programDegreeTitle"
+                                    required
+                                    placeholder="z.B. BSc Wirtschaftsinformatik"
+                                >
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">SWS-Rate Betreuer</label>
+                                <input
+                                    type="number"
+                                    class="form-input"
+                                    id="programSwsSupervisor"
+                                    step="0.01"
+                                    min="0"
+                                    max="10"
+                                    value="0.2"
+                                    placeholder="0.2"
+                                >
+                                <small style="color: var(--text-tertiary); font-size: 0.75rem;">
+                                    SWS pro Arbeit als Erstbetreuer
+                                </small>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">SWS-Rate Korreferent</label>
+                                <input
+                                    type="number"
+                                    class="form-input"
+                                    id="programSwsCosupervisor"
+                                    step="0.01"
+                                    min="0"
+                                    max="10"
+                                    value="0.1"
+                                    placeholder="0.1"
+                                >
+                                <small style="color: var(--text-tertiary); font-size: 0.75rem;">
+                                    SWS pro Arbeit als Korreferent
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel" onclick="closeModal('addProgramModal')">Abbrechen</button>
+                    <button class="modal-button primary" onclick="document.getElementById('addProgramForm').requestSubmit()">Anlegen</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ==================== ZUSÄTZLICHE LADE-FUNKTIONEN ====================
+
+async function loadDepartments() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/departments`);
+        if (!response.ok) {
+            // Fallback: Verwende den bestehenden FachbereichRepository
+            console.warn('Departments endpoint not found, using fallback data');
+            AppState.departments = [
+                { id: 1, name: 'Informatik' },
+                { id: 2, name: 'Wirtschaft' }
+            ];
+            return AppState.departments;
+        }
+        AppState.departments = await response.json();
+        return AppState.departments;
+    } catch (error) {
+        console.error('Error loading departments:', error);
+        // Fallback-Daten
+        AppState.departments = [
+            { id: 1, name: 'Informatik' },
+            { id: 2, name: 'Wirtschaft' }
+        ];
+        return AppState.departments;
+    }
+}
+
+async function loadDegreeTypes() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/degree-types`);
+        if (!response.ok) {
+            // Fallback: Verwende den bestehenden ArtAbschlussRepository
+            console.warn('Degree types endpoint not found, using fallback data');
+            AppState.degreeTypes = [
+                { id: 1, name: 'Bachelor' },
+                { id: 2, name: 'Master' }
+            ];
+            return AppState.degreeTypes;
+        }
+        AppState.degreeTypes = await response.json();
+        return AppState.degreeTypes;
+    } catch (error) {
+        console.error('Error loading degree types:', error);
+        // Fallback-Daten
+        AppState.degreeTypes = [
+            { id: 1, name: 'Bachelor' },
+            { id: 2, name: 'Master' }
+        ];
+        return AppState.degreeTypes;
+    }
+}
+
+// ==================== SUBMIT FUNCTION ====================
+
+async function submitNewProgram(event) {
+    event.preventDefault();
+
+    const newProgram = {
+        departmentId: parseInt(document.getElementById('programDepartment').value),
+        degreeTypeId: parseInt(document.getElementById('programDegreeType').value),
+        degreeTitle: document.getElementById('programDegreeTitle').value,
+        swsRateSupervisor: parseFloat(document.getElementById('programSwsSupervisor').value) || 0.2,
+        swsRateCoSupervisor: parseFloat(document.getElementById('programSwsCosupervisor').value) || 0.1
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/programs`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newProgram)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        // Erfolgreich erstellt
+        await loadPrograms();
+        renderProgramsList();
+        closeModal('addProgramModal');
+
+        // Optional: Erfolgsmeldung anzeigen
+        showSuccessMessage('Studiengang erfolgreich angelegt!');
+
+    } catch (error) {
+        console.error('Error creating program:', error);
+        document.getElementById('errorMessage').innerHTML =
+            `<div class="error-message">Fehler beim Anlegen: ${error.message}</div>`;
+    }
+}
+
+// ==================== DELETE FUNCTION ====================
+
+async function deleteProgram(id) {
+    if (!confirm('Studiengang wirklich löschen? Dies kann Auswirkungen auf bestehende Studenten haben.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/programs/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await loadPrograms();
+        renderProgramsList();
+        showSuccessMessage('Studiengang erfolgreich gelöscht!');
+
+    } catch (error) {
+        console.error('Error deleting program:', error);
+        alert('Fehler beim Löschen: ' + error.message);
+    }
+}
+
+// ==================== EDIT FUNCTION ====================
+
+async function editProgram(id) {
+    const program = AppState.programs.find(p => p.id === id);
+    if (!program) {
+        alert('Studiengang nicht gefunden!');
+        return;
+    }
+
+    await loadDepartments();
+    await loadDegreeTypes();
+
+    const departmentsOptions = AppState.departments?.map(d =>
+        `<option value="${d.id}" ${d.id === program.departmentId ? 'selected' : ''}>${d.name}</option>`
+    ).join('') || '';
+
+    const degreeTypesOptions = AppState.degreeTypes?.map(dt =>
+        `<option value="${dt.id}" ${dt.id === program.degreeTypeId ? 'selected' : ''}>${dt.name}</option>`
+    ).join('') || '';
+
+    document.getElementById('modals').innerHTML = `
+        <div class="modal-overlay active" id="editProgramModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <div class="modal-title">Studiengang bearbeiten</div>
+                    <div class="modal-close" onclick="closeModal('editProgramModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="errorMessage"></div>
+                    <form id="editProgramForm" onsubmit="submitEditProgram(event, ${id})">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="form-label">Fachbereich *</label>
+                                <select class="form-select" id="editProgramDepartment" required>
+                                    <option value="">Bitte wählen</option>
+                                    ${departmentsOptions}
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Abschlussart *</label>
+                                <select class="form-select" id="editProgramDegreeType" required>
+                                    <option value="">Bitte wählen</option>
+                                    ${degreeTypesOptions}
+                                </select>
+                            </div>
+                            <div class="form-field full-width">
+                                <label class="form-label">Titel nach Abschluss *</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="editProgramDegreeTitle"
+                                    required
+                                    value="${program.degreeTitle || ''}"
+                                >
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel" onclick="closeModal('editProgramModal')">Abbrechen</button>
+                    <button class="modal-button primary" onclick="document.getElementById('editProgramForm').requestSubmit()">Speichern</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function submitEditProgram(event, id) {
+    event.preventDefault();
+
+    const updatedProgram = {
+        departmentId: parseInt(document.getElementById('editProgramDepartment').value),
+        degreeTypeId: parseInt(document.getElementById('editProgramDegreeType').value),
+        degreeTitle: document.getElementById('editProgramDegreeTitle').value
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/programs/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedProgram)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await loadPrograms();
+        renderProgramsList();
+        closeModal('editProgramModal');
+        showSuccessMessage('Studiengang erfolgreich aktualisiert!');
+
+    } catch (error) {
+        console.error('Error updating program:', error);
+        document.getElementById('errorMessage').innerHTML =
+            `<div class="error-message">Fehler beim Aktualisieren: ${error.message}</div>`;
+    }
+}
+
+// ==================== VERBESSERTE RENDER-FUNKTION ====================
+
+function renderProgramsList() {
+    const container = document.getElementById('programsList');
+
+    if (!AppState.programs || AppState.programs.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; color: var(--text-tertiary); padding: 20px;">
+                Keine Studiengänge vorhanden
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = AppState.programs.map(p => `
+        <div style="background: var(--tertiary-bg); padding: 16px; border-radius: var(--radius-md); margin-bottom: 12px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <div style="flex: 1;">
+                <div style="font-weight: bold; color: var(--text-primary); margin-bottom: 4px;">
+                    ${p.degreeTitle}
+                </div>
+                <div style="color: var(--text-secondary); font-size: 13px;">
+                    ${p.departmentName || 'Unbekannt'} - ${p.degreeTypeName || 'Unbekannt'}
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="icon-button" onclick="editProgram(${p.id})" title="Bearbeiten">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+                <button class="icon-button delete" onclick="deleteProgram(${p.id})" title="Löschen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ==================== ERFOLGS-BENACHRICHTIGUNG ====================
+
+function showSuccessMessage(message) {
+    const statusText = document.getElementById('statusText');
+    if (statusText) {
+        const originalText = statusText.textContent;
+        statusText.textContent = message;
+        statusText.style.color = 'var(--success-color)';
+
+        setTimeout(() => {
+            statusText.textContent = originalText;
+            statusText.style.color = 'var(--text-tertiary)';
+        }, 3000);
+    }
+}
+
+// ==================== APPSTATE ERWEITERN ====================
+
+// Füge diese Zeilen zu deinem bestehenden AppState hinzu:
+AppState.departments = [];
+AppState.degreeTypes = [];
+
+
 
 // ==================== INITIALIZATION ====================
 
