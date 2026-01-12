@@ -821,52 +821,7 @@ function openAddProfessorModal() {
     `;
 }
 
-function openAddSemesterModal() {
-    document.getElementById('modals').innerHTML = `
-        <div class="modal-overlay active">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3 class="modal-title">Neues Semester anlegen</h3>
-                    <div class="modal-close" onclick="closeModal()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="modal-body">
-                    <form id="semesterForm" onsubmit="submitSemester(event)">
-                        <div class="form-grid">
-                            <div class="form-field">
-                                <label class="form-label">Name *</label>
-                                <input type="text" class="form-input" name="name" required placeholder="WS 2025/26">
-                            </div>
-                            <div class="form-field">
-                                <label class="form-label">Typ *</label>
-                                <select class="form-select" name="type" required>
-                                    <option value="WINTER">Wintersemester</option>
-                                    <option value="SUMMER">Sommersemester</option>
-                                </select>
-                            </div>
-                            <div class="form-field">
-                                <label class="form-label">Startdatum *</label>
-                                <input type="date" class="form-input" name="startDate" required>
-                            </div>
-                            <div class="form-field">
-                                <label class="form-label">Enddatum *</label>
-                                <input type="date" class="form-input" name="endDate" required>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="modal-button cancel" onclick="closeModal()">Abbrechen</button>
-                    <button class="modal-button primary" onclick="document.getElementById('semesterForm').requestSubmit()">Anlegen</button>
-                </div>
-            </div>
-        </div>
-    `;
-}
+
 
 function closeModal(modalId) {
     if (modalId) {
@@ -960,26 +915,7 @@ async function submitNewProfessor(event) {
     }
 }
 
-async function submitSemester(e) {
-    e.preventDefault();
-    const form = e.target;
-    const data = {
-        name: form.name.value,
-        type: form.type.value,
-        startDate: form.startDate.value,
-        endDate: form.endDate.value
-    };
 
-    await fetch(`${API_BASE_URL}/semesters`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-
-    await loadSemesters();
-    renderSemestersTable();
-    closeModal();
-}
 
 // ==================== DELETE FUNCTIONS ====================
 
@@ -1031,12 +967,7 @@ async function deleteProfessor(id) {
     }
 }
 
-async function deleteSemester(id) {
-    if (!confirm('Semester wirklich löschen?')) return;
-    await fetch(`${API_BASE_URL}/semesters/${id}`, { method: 'DELETE' });
-    await loadSemesters();
-    renderSemestersTable();
-}
+
 
 // ==================== REPORT FUNCTIONS ====================
 
@@ -1121,22 +1052,6 @@ async function loadSemesterReport(semId) {
 
 // ==================== CONFIG FUNCTIONS ====================
 
-function renderSemestersTable() {
-    const tbody = document.querySelector('#semestersTable tbody');
-    tbody.innerHTML = AppState.semesters.map(s => `
-        <tr>
-            <td>${s.name}</td>
-            <td>${s.type === 'WINTER' ? 'Wintersemester' : 'Sommersemester'}</td>
-            <td>${new Date(s.startDate).toLocaleDateString('de-DE')}</td>
-            <td>${new Date(s.endDate).toLocaleDateString('de-DE')}</td>
-            <td>${s.isCurrent ? '<span style="color: var(--success-color);">Aktuell</span>' : '-'}</td>
-            <td>
-                <button class="icon-button" onclick="editSemester(${s.id})">Bearbeiten</button>
-                <button class="icon-button delete" onclick="deleteSemester(${s.id})">Löschen</button>
-            </td>
-        </tr>
-    `).join('');
-}
 
 function renderProgramsList() {
     const container = document.getElementById('programsList');
@@ -1148,9 +1063,7 @@ function renderProgramsList() {
     `).join('');
 }
 
-function editSemester(id) {
-    alert('Bearbeiten-Funktion noch nicht implementiert für Semester ' + id);
-}
+
 
 // ==================== NAVIGATION EVENT LISTENER ====================
 
@@ -1525,7 +1438,486 @@ function renderProgramsList() {
         </div>
     `).join('');
 }
+// ==================== SEMESTER MODAL - ANLEGEN ====================
 
+function openAddSemesterModal() {
+    document.getElementById('modals').innerHTML = `
+        <div class="modal-overlay active" id="addSemesterModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <div class="modal-title">Neues Semester anlegen</div>
+                    <div class="modal-close" onclick="closeModal('addSemesterModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="errorMessage"></div>
+                    <form id="addSemesterForm" onsubmit="submitNewSemester(event)">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="form-label">Name *</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="semesterName"
+                                    required
+                                    placeholder="z.B. WS 2025/26"
+                                >
+                                <small style="color: var(--text-tertiary); font-size: 0.75rem;">
+                                    Format: WS YYYY/YY oder SS YYYY
+                                </small>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Typ *</label>
+                                <select class="form-select" id="semesterType" required onchange="updateSemesterDates()">
+                                    <option value="">Bitte wählen</option>
+                                    <option value="WINTER">Wintersemester</option>
+                                    <option value="SUMMER">Sommersemester</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Startdatum *</label>
+                                <input
+                                    type="date"
+                                    class="form-input"
+                                    id="semesterStartDate"
+                                    required
+                                >
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Enddatum *</label>
+                                <input
+                                    type="date"
+                                    class="form-input"
+                                    id="semesterEndDate"
+                                    required
+                                >
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel" onclick="closeModal('addSemesterModal')">Abbrechen</button>
+                    <button class="modal-button primary" onclick="document.getElementById('addSemesterForm').requestSubmit()">Anlegen</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ==================== SEMESTER MODAL - BEARBEITEN ====================
+
+function editSemester(id) {
+    const semester = AppState.semesters.find(s => s.id === id);
+    if (!semester) {
+        alert('Semester nicht gefunden!');
+        return;
+    }
+
+    document.getElementById('modals').innerHTML = `
+        <div class="modal-overlay active" id="editSemesterModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <div class="modal-title">Semester bearbeiten</div>
+                    <div class="modal-close" onclick="closeModal('editSemesterModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="errorMessage"></div>
+                    <form id="editSemesterForm" onsubmit="submitEditSemester(event, ${id})">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="form-label">Name *</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="editSemesterName"
+                                    required
+                                    value="${semester.name || ''}"
+                                    placeholder="z.B. WS 2025/26"
+                                >
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Typ *</label>
+                                <select class="form-select" id="editSemesterType" required>
+                                    <option value="">Bitte wählen</option>
+                                    <option value="WINTER" ${semester.type === 'WINTER' ? 'selected' : ''}>Wintersemester</option>
+                                    <option value="SUMMER" ${semester.type === 'SUMMER' ? 'selected' : ''}>Sommersemester</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Startdatum *</label>
+                                <input
+                                    type="date"
+                                    class="form-input"
+                                    id="editSemesterStartDate"
+                                    required
+                                    value="${semester.startDate || ''}"
+                                >
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Enddatum *</label>
+                                <input
+                                    type="date"
+                                    class="form-input"
+                                    id="editSemesterEndDate"
+                                    required
+                                    value="${semester.endDate || ''}"
+                                >
+                            </div>
+                            ${semester.isCurrent ? `
+                            <div class="form-field full-width">
+                                <div style="background: var(--accent-light); border: 1px solid var(--accent-color); color: var(--accent-color); padding: 12px; border-radius: var(--radius-md); font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="12" y1="16" x2="12" y2="12"/>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                    </svg>
+                                    Dies ist das aktuelle Semester
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel" onclick="closeModal('editSemesterModal')">Abbrechen</button>
+                    <button class="modal-button primary" onclick="document.getElementById('editSemesterForm').requestSubmit()">Speichern</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ==================== HILFSFUNKTION - AUTO-DATUMS-VORSCHLAG ====================
+
+function updateSemesterDates() {
+    const typeSelect = document.getElementById('semesterType');
+    const startDateInput = document.getElementById('semesterStartDate');
+    const endDateInput = document.getElementById('semesterEndDate');
+
+    if (!typeSelect || !startDateInput || !endDateInput) return;
+
+    const currentYear = new Date().getFullYear();
+    const type = typeSelect.value;
+
+    if (type === 'WINTER') {
+        // Wintersemester: 1. Oktober - 31. März
+        startDateInput.value = `${currentYear}-10-01`;
+        endDateInput.value = `${currentYear + 1}-03-31`;
+    } else if (type === 'SUMMER') {
+        // Sommersemester: 1. April - 30. September
+        startDateInput.value = `${currentYear}-04-01`;
+        endDateInput.value = `${currentYear}-09-30`;
+    }
+}
+
+// ==================== SUBMIT FUNCTIONS ====================
+
+async function submitNewSemester(event) {
+    event.preventDefault();
+
+    const newSemester = {
+        name: document.getElementById('semesterName').value,
+        type: document.getElementById('semesterType').value,
+        startDate: document.getElementById('semesterStartDate').value,
+        endDate: document.getElementById('semesterEndDate').value
+    };
+
+    // Validierung: Enddatum muss nach Startdatum liegen
+    if (new Date(newSemester.endDate) <= new Date(newSemester.startDate)) {
+        document.getElementById('errorMessage').innerHTML =
+            `<div class="error-message">Das Enddatum muss nach dem Startdatum liegen!</div>`;
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/semesters`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newSemester)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        // Erfolgreich erstellt
+        await loadSemesters();
+        renderSemestersTable();
+        closeModal('addSemesterModal');
+        showSuccessMessage('Semester erfolgreich angelegt!');
+
+    } catch (error) {
+        console.error('Error creating semester:', error);
+        document.getElementById('errorMessage').innerHTML =
+            `<div class="error-message">Fehler beim Anlegen: ${error.message}</div>`;
+    }
+}
+
+async function submitEditSemester(event, id) {
+    event.preventDefault();
+
+    const updatedSemester = {
+        name: document.getElementById('editSemesterName').value,
+        type: document.getElementById('editSemesterType').value,
+        startDate: document.getElementById('editSemesterStartDate').value,
+        endDate: document.getElementById('editSemesterEndDate').value
+    };
+
+    // Validierung: Enddatum muss nach Startdatum liegen
+    if (new Date(updatedSemester.endDate) <= new Date(updatedSemester.startDate)) {
+        document.getElementById('errorMessage').innerHTML =
+            `<div class="error-message">Das Enddatum muss nach dem Startdatum liegen!</div>`;
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/semesters/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedSemester)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        // Erfolgreich aktualisiert
+        await loadSemesters();
+        renderSemestersTable();
+        closeModal('editSemesterModal');
+        showSuccessMessage('Semester erfolgreich aktualisiert!');
+
+    } catch (error) {
+        console.error('Error updating semester:', error);
+        document.getElementById('errorMessage').innerHTML =
+            `<div class="error-message">Fehler beim Aktualisieren: ${error.message}</div>`;
+    }
+}
+
+// ==================== DELETE FUNCTION ====================
+
+async function deleteSemester(id) {
+    const semester = AppState.semesters.find(s => s.id === id);
+
+    if (semester?.isCurrent) {
+        alert('Das aktuelle Semester kann nicht gelöscht werden!');
+        return;
+    }
+
+    if (!confirm(`Semester "${semester?.name || 'Unbekannt'}" wirklich löschen? Dies kann Auswirkungen auf bestehende Arbeiten haben.`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/semesters/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        await loadSemesters();
+        renderSemestersTable();
+        showSuccessMessage('Semester erfolgreich gelöscht!');
+
+    } catch (error) {
+        console.error('Error deleting semester:', error);
+        alert('Fehler beim Löschen: ' + error.message);
+    }
+}
+
+// ==================== SEMESTER ALS AKTUELL MARKIEREN ====================
+
+async function setCurrentSemester(id) {
+    const semester = AppState.semesters.find(s => s.id === id);
+
+    if (!semester) {
+        alert('Semester nicht gefunden!');
+        return;
+    }
+
+    if (semester.isCurrent) {
+        alert('Dieses Semester ist bereits als aktuell markiert.');
+        return;
+    }
+
+    if (!confirm(`"${semester.name}" als aktuelles Semester festlegen?`)) {
+        return;
+    }
+
+    try {
+        // Aktualisiere das Semester und setze isCurrent auf true
+        const response = await fetch(`${API_BASE_URL}/semesters/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: semester.name,
+                type: semester.type,
+                startDate: semester.startDate,
+                endDate: semester.endDate
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Trigger die Update-Funktion für den aktuellen Status
+        await fetch(`${API_BASE_URL}/semesters/update-current-status`, {
+            method: 'POST'
+        });
+
+        await loadSemesters();
+        renderSemestersTable();
+        showSuccessMessage(`"${semester.name}" ist jetzt das aktuelle Semester!`);
+
+    } catch (error) {
+        console.error('Error setting current semester:', error);
+        alert('Fehler beim Festlegen des aktuellen Semesters: ' + error.message);
+    }
+}
+
+// ==================== VERBESSERTE RENDER-FUNKTION ====================
+
+function renderSemestersTable() {
+    const tbody = document.querySelector('#semestersTable tbody');
+
+    if (!AppState.semesters || AppState.semesters.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-tertiary); padding: 20px;">
+                    Keine Semester vorhanden
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    // Sortiere Semester nach Startdatum (neueste zuerst)
+    const sortedSemesters = [...AppState.semesters].sort((a, b) =>
+        new Date(b.startDate) - new Date(a.startDate)
+    );
+
+    tbody.innerHTML = sortedSemesters.map(s => {
+        const startDate = new Date(s.startDate);
+        const endDate = new Date(s.endDate);
+        const now = new Date();
+
+        // Prüfe ob Semester in der Zukunft, aktiv oder vergangen ist
+        let statusBadge = '';
+        if (s.isCurrent) {
+            statusBadge = '<span style="color: var(--success-color); font-weight: 600;">● Aktuell</span>';
+        } else if (startDate > now) {
+            statusBadge = '<span style="color: var(--accent-color);">Zukünftig</span>';
+        } else if (endDate < now) {
+            statusBadge = '<span style="color: var(--text-tertiary);">Vergangen</span>';
+        }
+
+        return `
+            <tr>
+                <td style="font-weight: 600; color: var(--text-primary);">${s.name}</td>
+                <td>${s.type === 'WINTER' ? 'Wintersemester' : 'Sommersemester'}</td>
+                <td>${startDate.toLocaleDateString('de-DE')}</td>
+                <td>${endDate.toLocaleDateString('de-DE')}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        ${!s.isCurrent ? `
+                        <button
+                            class="icon-button"
+                            onclick="setCurrentSemester(${s.id})"
+                            title="Als aktuell markieren"
+                            style="width: auto; padding: 0 12px;"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; margin-right: 4px;">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Aktuell
+                        </button>
+                        ` : ''}
+                        <button
+                            class="icon-button"
+                            onclick="editSemester(${s.id})"
+                            title="Bearbeiten"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        ${!s.isCurrent ? `
+                        <button
+                            class="icon-button delete"
+                            onclick="deleteSemester(${s.id})"
+                            title="Löschen"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                        ` : `
+                        <div style="width: 40px;"></div>
+                        `}
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ==================== SEMESTER-ÜBERSICHT FÜR DASHBOARD ====================
+
+function renderSemesterOverview() {
+    const currentSem = AppState.semesters.find(s => s.isCurrent);
+    const upcomingSem = AppState.semesters
+        .filter(s => new Date(s.startDate) > new Date())
+        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))[0];
+
+    return `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+            <div style="background: var(--tertiary-bg); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="color: var(--text-tertiary); font-size: 0.75rem; margin-bottom: 8px;">AKTUELLES SEMESTER</div>
+                ${currentSem ? `
+                    <div style="font-weight: 700; font-size: 1.25rem; color: var(--accent-color); margin-bottom: 4px;">
+                        ${currentSem.name}
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                        ${new Date(currentSem.startDate).toLocaleDateString('de-DE')} -
+                        ${new Date(currentSem.endDate).toLocaleDateString('de-DE')}
+                    </div>
+                ` : `
+                    <div style="color: var(--text-tertiary); font-style: italic;">Kein aktuelles Semester</div>
+                `}
+            </div>
+            <div style="background: var(--tertiary-bg); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="color: var(--text-tertiary); font-size: 0.75rem; margin-bottom: 8px;">NÄCHSTES SEMESTER</div>
+                ${upcomingSem ? `
+                    <div style="font-weight: 700; font-size: 1.25rem; color: var(--text-primary); margin-bottom: 4px;">
+                        ${upcomingSem.name}
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                        Start: ${new Date(upcomingSem.startDate).toLocaleDateString('de-DE')}
+                    </div>
+                ` : `
+                    <div style="color: var(--text-tertiary); font-style: italic;">Kein zukünftiges Semester</div>
+                `}
+            </div>
+        </div>
+    `;
+}
 // ==================== ERFOLGS-BENACHRICHTIGUNG ====================
 
 function showSuccessMessage(message) {
