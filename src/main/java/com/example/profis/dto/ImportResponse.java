@@ -11,18 +11,18 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImportResponse {
-    private final String status; // SUCCESS, PARTIAL, FAILED
-    private final Integer importedRecords;
-    private final Integer skippedRecords;
-    private final List<ImportError> errors;
-    
+    private String status; // SUCCESS, PARTIAL, FAILED
+    private Integer importedRecords;
+    private Integer skippedRecords;
+    private List<ImportError> errors;
+
     public ImportResponse(String status) {
         this.status = status;
         this.importedRecords = 0;
         this.skippedRecords = 0;
         this.errors = new ArrayList<>();
     }
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

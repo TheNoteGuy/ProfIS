@@ -9,12 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Student {
     private Long matrikelnummer;
-    private final String vorname;
-    private final String nachname;
-    private final String mail;
-    private final Boolean scheinfrei;
-    private final Long idStudiengang;
+    private String vorname;
+    private String nachname;
+    private String mail;
+    private Boolean scheinfrei;
+    private Long idStudiengang;
 
+    // Konstruktor ohne Matrikelnummer (für neue Studenten)
     public Student(String vorname, String nachname, String mail, Boolean scheinfrei, Long idStudiengang) {
         this.vorname = vorname;
         this.nachname = nachname;
