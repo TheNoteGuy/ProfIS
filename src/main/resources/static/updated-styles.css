@@ -392,6 +392,7 @@ body {
 }
 
 .icon-button {
+    color: white;
     width: 80px;
     height: 40px;
     background: var(--tertiary-bg);
