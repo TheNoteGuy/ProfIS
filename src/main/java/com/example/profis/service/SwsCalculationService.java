@@ -22,9 +22,8 @@ public class SwsCalculationService {
     private final ReferentRepository professorRepository;
     private final StudentRepository studentRepository;
     private final StudiengangRepository programRepository;
-    private final SemesterRepository semesterRepository;  // ← FIX: Hinzugefügt!
+    private final SemesterRepository semesterRepository;
 
-    // Default configuration - could be loaded from database or config file
     private final SwsCalculationConfig config = new SwsCalculationConfig();
 
     public SwsCalculationService(
@@ -32,12 +31,12 @@ public class SwsCalculationService {
             ReferentRepository professorRepository,
             StudentRepository studentRepository,
             StudiengangRepository programRepository,
-            SemesterRepository semesterRepository) {  // ← FIX: Parameter hinzugefügt!
+            SemesterRepository semesterRepository) {
         this.thesisRepository = thesisRepository;
         this.professorRepository = professorRepository;
         this.studentRepository = studentRepository;
         this.programRepository = programRepository;
-        this.semesterRepository = semesterRepository;  // ← FIX: Initialisiert!
+        this.semesterRepository = semesterRepository;
     }
 
     public SwsCalculationReport calculateSwsForProfessor(Long professorId, Long semesterId) {
@@ -204,14 +203,12 @@ public class SwsCalculationService {
         List<WissenschaftlicheArbeit> filtered = new ArrayList<>();
 
         for (WissenschaftlicheArbeit thesis : allTheses) {
-            // Check if professor is supervisor or co-supervisor
             boolean involvedAsSupervisor = thesis.getIdErstreferent() != null &&
                     thesis.getIdErstreferent().equals(professorId);
             boolean involvedAsCoSupervisor = thesis.getIdKorreferent() != null &&
                     thesis.getIdKorreferent().equals(professorId);
 
             if (involvedAsSupervisor || involvedAsCoSupervisor) {
-                // If semester filter is provided, check if thesis belongs to that semester
                 if (semesterId == null || thesisBelongsToSemester(thesis, semesterId)) {
                     filtered.add(thesis);
                 }
@@ -228,7 +225,6 @@ public class SwsCalculationService {
         }
 
         try {
-            // FIX: Lowercase semesterRepository (instance variable, not class)
             Semester semester = semesterRepository.findById(semesterId)
                     .orElse(null);
 
@@ -242,27 +238,22 @@ public class SwsCalculationService {
             LocalDate thesisStart = thesis.getStartDatum();
             LocalDate thesisSubmission = thesis.getAbgabeDatum();
 
-            // If thesis has no dates, we can't determine if it belongs to the semester
             if (thesisStart == null && thesisSubmission == null) {
                 return false;
             }
 
-            // Check if start date is within semester
             if (thesisStart != null) {
                 if (!thesisStart.isBefore(semesterStart) && !thesisStart.isAfter(semesterEnd)) {
                     return true;
                 }
             }
 
-            // Check if submission date is within semester
             if (thesisSubmission != null) {
                 if (!thesisSubmission.isBefore(semesterStart) && !thesisSubmission.isAfter(semesterEnd)) {
                     return true;
                 }
             }
 
-            // Check if thesis spans across the entire semester
-            // (started before semester, ended after semester)
             if (thesisStart != null && thesisSubmission != null) {
                 if (thesisStart.isBefore(semesterStart) && thesisSubmission.isAfter(semesterEnd)) {
                     return true;
@@ -272,7 +263,6 @@ public class SwsCalculationService {
             return false;
 
         } catch (SQLException e) {
-            // Log error and return false
             System.err.println("Error checking semester for thesis: " + e.getMessage());
             return false;
         }

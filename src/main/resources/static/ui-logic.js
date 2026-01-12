@@ -1032,7 +1032,6 @@ async function loadSemesterReport(semId) {
     const content = document.getElementById('semesterReportContent');
     content.innerHTML = '<div style="padding: 32px;">Lade...</div>';
 
-    // Call backend statt local filter!
     const response = await fetch(`/api/theses/by-semester/${semId}`);
     const semTheses = await response.json();
 

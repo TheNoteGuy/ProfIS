@@ -54,7 +54,6 @@ public class ThesisService {
         List<ThesisResponse> result = new ArrayList<>();
 
         for (WissenschaftlicheArbeit thesis : allTheses) {
-            // Nutze die EXISTING thesisBelongsToSemester logic aus SwsCalculationService!
             if (swsCalculationService.thesisBelongsToSemester(thesis, semesterId)) {
                 result.add(mapToResponse(thesis));
             }
