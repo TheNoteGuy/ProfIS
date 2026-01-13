@@ -104,6 +104,55 @@ ViewManager.register('config', () => `
         </div>
         <div class="main-content" style="display: block; overflow-y: auto;">
             <div class="config-section">
+                <h3>Daten Import/Export</h3>
+                <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                    <button class="action-button" onclick="document.getElementById('excelImportInput').click()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Excel Importieren
+                    </button>
+                    <input type="file" id="excelImportInput" accept=".xlsx,.xls" style="display: none;" onchange="handleExcelImport(event)">
+                    
+                    <button class="action-button" onclick="exportToExcel()" style="background: var(--success-color);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Excel Exportieren
+                    </button>
+                </div>
+                
+                <div id="importDropZone" style="
+                    border: 2px dashed var(--border-color);
+                    border-radius: var(--radius-md);
+                    padding: 32px;
+                    text-align: center;
+                    background: var(--tertiary-bg);
+                    cursor: pointer;
+                    transition: all 0.2s;
+                " onclick="document.getElementById('excelImportInput').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; margin: 0 auto 16px; color: var(--text-tertiary);">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="12" y1="18" x2="12" y2="12"/>
+                        <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 8px;">
+                        Excel-Datei hier ablegen
+                    </div>
+                    <div style="color: var(--text-tertiary); font-size: 0.875rem;">
+                        oder klicken zum Auswählen
+                    </div>
+                </div>
+                
+                <div id="importStatus" style="margin-top: 16px;"></div>
+            </div>
+        
+            <div class="config-section">
                 <h3>Semester-Verwaltung</h3>
                 <button class="action-button" onclick="openAddSemesterModal()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2144,6 +2193,91 @@ function showSuccessMessage(message) {
 AppState.departments = [];
 AppState.degreeTypes = [];
 
+
+
+// ==================== EXCEL IMPORT/EXPORT ====================
+
+// Drag & Drop Setup
+function initConfigView() {
+    const dropZone = document.getElementById('importDropZone');
+    if (!dropZone) return;
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.style.borderColor = 'var(--accent-color)';
+            dropZone.style.background = 'var(--secondary-bg)';
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.style.borderColor = 'var(--border-color)';
+            dropZone.style.background = 'var(--tertiary-bg)';
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+            handleExcelImportFile(files[0]);
+        }
+    }
+}
+
+async function handleExcelImport(event) {
+    // TODO: Import functionality coming soon
+    const statusDiv = document.getElementById('importStatus');
+    statusDiv.innerHTML = `
+        <div style="padding: 16px; background: var(--tertiary-bg); border-radius: var(--radius-md); border-left: 4px solid var(--accent-color);">
+            <div style="color: var(--accent-color); font-weight: 600; margin-bottom: 8px;">
+                ℹ️ Import-Funktion
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                Feature in Entwicklung
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        statusDiv.innerHTML = '';
+    }, 3000);
+}
+
+async function handleExcelImportFile(file) {
+    // TODO: Import functionality coming soon
+    const statusDiv = document.getElementById('importStatus');
+    statusDiv.innerHTML = `
+        <div style="padding: 16px; background: var(--tertiary-bg); border-radius: var(--radius-md); border-left: 4px solid var(--accent-color);">
+            <div style="color: var(--accent-color); font-weight: 600; margin-bottom: 8px;">
+                ℹ️ Import-Funktion
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                Feature in Entwicklung
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        statusDiv.innerHTML = '';
+    }, 3000);
+}
+
+async function exportToExcel() {
+    // TODO: Export functionality coming soon
+    alert('Export-Funktion in Entwicklung');
+}
 
 
 // ==================== INITIALIZATION ====================

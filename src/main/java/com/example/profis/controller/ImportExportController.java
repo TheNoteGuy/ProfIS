@@ -17,9 +17,7 @@ public class ImportExportController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String sheetName) {
         try {
-            // TODO: Implement Excel import logic
-            // This would use Apache POI to read Excel files
-            // and populate the database
+
             
             ImportResponse response = new ImportResponse("SUCCESS");
             response.setImportedRecords(0);
@@ -42,11 +40,7 @@ public class ImportExportController {
             @RequestParam String type,
             @RequestParam(required = false) Long semesterId) {
         try {
-            // TODO: Implement Excel export logic
-            // This would use Apache POI to create Excel files
-            // from database data
-            
-            // For now, return empty response
+
             return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
