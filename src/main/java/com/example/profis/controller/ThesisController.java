@@ -93,4 +93,58 @@ public class ThesisController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @PutMapping("/{id}/grades")
+    public ResponseEntity<ThesisResponse> updateGrades(
+            @PathVariable Long id,
+            @RequestBody GradeUpdateRequest request) {
+        try {
+            ThesisResponse response = thesisService.updateGrades(id, request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    // DTO class for grade updates
+    public static class GradeUpdateRequest {
+        private Double noteArbeitReferent;
+        private Double noteArbeitKorreferent;
+        private Double noteKolloquiumReferent;
+        private Double noteKolloquiumKorreferent;
+
+        public Double getNoteArbeitReferent() {
+            return noteArbeitReferent;
+        }
+
+        public void setNoteArbeitReferent(Double noteArbeitReferent) {
+            this.noteArbeitReferent = noteArbeitReferent;
+        }
+
+        public Double getNoteArbeitKorreferent() {
+            return noteArbeitKorreferent;
+        }
+
+        public void setNoteArbeitKorreferent(Double noteArbeitKorreferent) {
+            this.noteArbeitKorreferent = noteArbeitKorreferent;
+        }
+
+        public Double getNoteKolloquiumReferent() {
+            return noteKolloquiumReferent;
+        }
+
+        public void setNoteKolloquiumReferent(Double noteKolloquiumReferent) {
+            this.noteKolloquiumReferent = noteKolloquiumReferent;
+        }
+
+        public Double getNoteKolloquiumKorreferent() {
+            return noteKolloquiumKorreferent;
+        }
+
+        public void setNoteKolloquiumKorreferent(Double noteKolloquiumKorreferent) {
+            this.noteKolloquiumKorreferent = noteKolloquiumKorreferent;
+        }
+    }
 }

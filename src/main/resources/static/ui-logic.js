@@ -528,11 +528,44 @@ function displayThesisDetails(thesis) {
                 <div class="detail-label">Abgabedatum</div>
                 <div class="detail-value">${formatDate(thesis.submissionDate)}</div>
             </div>
-            ${thesis.finalGrade ? `
-            <div class="detail-field">
-                <div class="detail-label">Endnote</div>
-                <div class="detail-value">${thesis.finalGrade}</div>
-            </div>` : ''}
+        </div>
+        
+        ${(thesis.gradeSupervisor || thesis.gradeCoSupervisor || thesis.gradeColloquiumSupervisor || thesis.gradeColloquiumCoSupervisor) ? `
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color);">
+            <h3 style="color: var(--text-primary); font-size: 1rem; margin-bottom: 16px;">Bewertung</h3>
+            <div class="detail-grid">
+                ${thesis.gradeSupervisor ? `
+                <div class="detail-field">
+                    <div class="detail-label">Note Arbeit (Erstreferent)</div>
+                    <div class="detail-value" style="color: var(--accent-color); font-weight: 600;">${thesis.gradeSupervisor}</div>
+                </div>` : ''}
+                ${thesis.gradeCoSupervisor ? `
+                <div class="detail-field">
+                    <div class="detail-label">Note Arbeit (Korreferent)</div>
+                    <div class="detail-value" style="color: var(--accent-color); font-weight: 600;">${thesis.gradeCoSupervisor}</div>
+                </div>` : ''}
+                ${thesis.gradeColloquiumSupervisor ? `
+                <div class="detail-field">
+                    <div class="detail-label">Note Kolloquium (Erstreferent)</div>
+                    <div class="detail-value" style="color: var(--accent-color); font-weight: 600;">${thesis.gradeColloquiumSupervisor}</div>
+                </div>` : ''}
+                ${thesis.gradeColloquiumCoSupervisor ? `
+                <div class="detail-field">
+                    <div class="detail-label">Note Kolloquium (Korreferent)</div>
+                    <div class="detail-value" style="color: var(--accent-color); font-weight: 600;">${thesis.gradeColloquiumCoSupervisor}</div>
+                </div>` : ''}
+            </div>
+        </div>
+        ` : ''}
+        
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color);">
+            <button class="action-button" onclick="openEditGradeModal(${thesis.id})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Noten bearbeiten
+            </button>
         </div>
     `;
 }
@@ -818,6 +851,117 @@ function openAddProfessorModal() {
     `;
 }
 
+async function openEditGradeModal(thesisId) {
+    // Finde die Arbeit
+    const thesis = AppState.theses.find(t => t.id === thesisId);
+    if (!thesis) {
+        alert('Arbeit nicht gefunden');
+        return;
+    }
+
+    document.getElementById('modals').innerHTML = `
+        <div class="modal-overlay active" id="editGradeModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <div class="modal-title">Noten bearbeiten</div>
+                    <div class="modal-close" onclick="closeModal('editGradeModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="errorMessage"></div>
+                    <form id="editGradeForm" onsubmit="submitGrade(event, ${thesisId})">
+                        <div class="form-grid">
+                            <div class="form-field full-width">
+                                <label class="form-label">Student</label>
+                                <input type="text" class="form-input" value="${thesis.studentName || 'Unbekannt'}" disabled>
+                            </div>
+                            <div class="form-field full-width">
+                                <label class="form-label">Titel</label>
+                                <input type="text" class="form-input" value="${thesis.title}" disabled>
+                            </div>
+                            
+                            <div class="form-field full-width" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                                <h4 style="color: var(--text-primary); margin-bottom: 12px;">Noten der Arbeit</h4>
+                            </div>
+                            
+                            <div class="form-field">
+                                <label class="form-label">Note Arbeit (Erstreferent)</label>
+                                <input 
+                                    type="number" 
+                                    class="form-input" 
+                                    id="noteArbeitReferent" 
+                                    min="1.0" 
+                                    max="5.0" 
+                                    step="0.1" 
+                                    value="${thesis.gradeSupervisor || ''}" 
+                                    placeholder="1.0 - 5.0"
+                                >
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Note Arbeit (Korreferent)</label>
+                                <input 
+                                    type="number" 
+                                    class="form-input" 
+                                    id="noteArbeitKorreferent" 
+                                    min="1.0" 
+                                    max="5.0" 
+                                    step="0.1" 
+                                    value="${thesis.gradeCoSupervisor || ''}" 
+                                    placeholder="1.0 - 5.0"
+                                >
+                            </div>
+                            
+                            <div class="form-field full-width" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                                <h4 style="color: var(--text-primary); margin-bottom: 12px;">Noten des Kolloquiums</h4>
+                            </div>
+                            
+                            <div class="form-field">
+                                <label class="form-label">Note Kolloquium (Erstreferent)</label>
+                                <input 
+                                    type="number" 
+                                    class="form-input" 
+                                    id="noteKolloquiumReferent" 
+                                    min="1.0" 
+                                    max="5.0" 
+                                    step="0.1" 
+                                    value="${thesis.gradeColloquiumSupervisor || ''}" 
+                                    placeholder="1.0 - 5.0"
+                                >
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">Note Kolloquium (Korreferent)</label>
+                                <input 
+                                    type="number" 
+                                    class="form-input" 
+                                    id="noteKolloquiumKorreferent" 
+                                    min="1.0" 
+                                    max="5.0" 
+                                    step="0.1" 
+                                    value="${thesis.gradeColloquiumCoSupervisor || ''}" 
+                                    placeholder="1.0 - 5.0"
+                                >
+                            </div>
+                            
+                            <div class="form-field full-width" style="margin-top: 8px;">
+                                <small style="color: var(--text-tertiary); font-size: 0.75rem;">
+                                    Notenskala: 1.0 (Sehr gut) bis 5.0 (Nicht ausreichend)
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button cancel" onclick="closeModal('editGradeModal')">Abbrechen</button>
+                    <button class="modal-button primary" onclick="document.getElementById('editGradeForm').requestSubmit()">Speichern</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
 
 function closeModal(modalId) {
@@ -909,6 +1053,64 @@ async function submitNewProfessor(event) {
     } catch (error) {
         console.error('Error creating professor:', error);
         document.getElementById('errorMessage').innerHTML = `<div class="error-message">${error.message}</div>`;
+    }
+}
+
+async function submitGrade(event, thesisId) {
+    event.preventDefault();
+
+    // Hole alle Notenwerte
+    const noteArbeitReferent = document.getElementById('noteArbeitReferent').value;
+    const noteArbeitKorreferent = document.getElementById('noteArbeitKorreferent').value;
+    const noteKolloquiumReferent = document.getElementById('noteKolloquiumReferent').value;
+    const noteKolloquiumKorreferent = document.getElementById('noteKolloquiumKorreferent').value;
+
+    // Validierung - prüfe alle ausgefüllten Noten
+    const grades = [noteArbeitReferent, noteArbeitKorreferent, noteKolloquiumReferent, noteKolloquiumKorreferent];
+    for (const grade of grades) {
+        if (grade !== '' && (parseFloat(grade) < 1.0 || parseFloat(grade) > 5.0)) {
+            document.getElementById('errorMessage').innerHTML =
+                `<div class="error-message">Alle Noten müssen zwischen 1.0 und 5.0 liegen</div>`;
+            return;
+        }
+    }
+
+    try {
+        // Erstelle Update-Objekt mit allen Noten
+        const updateData = {
+            noteArbeitReferent: noteArbeitReferent !== '' ? parseFloat(noteArbeitReferent) : null,
+            noteArbeitKorreferent: noteArbeitKorreferent !== '' ? parseFloat(noteArbeitKorreferent) : null,
+            noteKolloquiumReferent: noteKolloquiumReferent !== '' ? parseFloat(noteKolloquiumReferent) : null,
+            noteKolloquiumKorreferent: noteKolloquiumKorreferent !== '' ? parseFloat(noteKolloquiumKorreferent) : null
+        };
+
+        const response = await fetch(`${API_BASE_URL}/theses/${thesisId}/grades`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Aktualisiere die Arbeitsliste
+        await loadTheses();
+        renderThesesList(AppState.theses);
+
+        // Aktualisiere die Detail-Ansicht
+        const updatedThesis = AppState.theses.find(t => t.id === thesisId);
+        if (updatedThesis) {
+            displayThesisDetails(updatedThesis);
+        }
+
+        closeModal('editGradeModal');
+        showSuccessMessage('Noten erfolgreich gespeichert');
+
+    } catch (error) {
+        console.error('Error saving grades:', error);
+        document.getElementById('errorMessage').innerHTML =
+            `<div class="error-message">Fehler beim Speichern: ${error.message}</div>`;
     }
 }
 

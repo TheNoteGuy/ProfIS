@@ -26,8 +26,8 @@ public class ThesisService {
     private final SwsCalculationService swsCalculationService;
 
     public ThesisService(WissenschaftlicheArbeitRepository thesisRepository,
-                        StudentRepository studentRepository,
-                        ReferentRepository professorRepository,SwsCalculationService swsCalculationService) {
+                         StudentRepository studentRepository,
+                         ReferentRepository professorRepository,SwsCalculationService swsCalculationService) {
         this.thesisRepository = thesisRepository;
         this.studentRepository = studentRepository;
         this.professorRepository = professorRepository;
@@ -38,11 +38,11 @@ public class ThesisService {
         try {
             List<WissenschaftlicheArbeit> theses = thesisRepository.findAll();
             List<ThesisResponse> responses = new ArrayList<>();
-            
+
             for (WissenschaftlicheArbeit thesis : theses) {
                 responses.add(mapToResponse(thesis));
             }
-            
+
             return responses;
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching theses", e);
@@ -65,7 +65,7 @@ public class ThesisService {
     public ThesisResponse getThesisById(Long id) {
         try {
             WissenschaftlicheArbeit thesis = thesisRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Thesis not found with id: " + id));
+                    .orElseThrow(() -> new RuntimeException("Thesis not found with id: " + id));
             return mapToResponse(thesis);
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching thesis", e);
@@ -88,7 +88,7 @@ public class ThesisService {
             thesis.setNoteArbeitKorreferent(request.getGradeCoSupervisor());
             thesis.setNoteKolloquiumReferent(request.getGradeColloquiumSupervisor());
             thesis.setNoteKolloquiumKorreferent(request.getGradeColloquiumCoSupervisor());
-            
+
             WissenschaftlicheArbeit saved = thesisRepository.save(thesis);
             return mapToResponse(saved);
         } catch (SQLException e) {
@@ -99,8 +99,8 @@ public class ThesisService {
     public ThesisResponse updateThesis(Long id, ThesisRequest request) {
         try {
             WissenschaftlicheArbeit existing = thesisRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Thesis not found with id: " + id));
-            
+                    .orElseThrow(() -> new RuntimeException("Thesis not found with id: " + id));
+
             existing.setMatrikelnummer(request.getMatrikelnummer());
             existing.setIdErstreferent(request.getSupervisorId());
             existing.setIdKorreferent(request.getCoSupervisorId());
@@ -114,7 +114,7 @@ public class ThesisService {
             existing.setNoteArbeitKorreferent(request.getGradeCoSupervisor());
             existing.setNoteKolloquiumReferent(request.getGradeColloquiumSupervisor());
             existing.setNoteKolloquiumKorreferent(request.getGradeColloquiumCoSupervisor());
-            
+
             WissenschaftlicheArbeit updated = thesisRepository.update(existing);
             return mapToResponse(updated);
         } catch (SQLException e) {
@@ -125,10 +125,36 @@ public class ThesisService {
     public void deleteThesis(Long id) {
         try {
             thesisRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Thesis not found with id: " + id));
+                    .orElseThrow(() -> new RuntimeException("Thesis not found with id: " + id));
             thesisRepository.deleteById(id);
         } catch (SQLException e) {
             throw new RuntimeException("Error deleting thesis", e);
+        }
+    }
+
+    public ThesisResponse updateGrades(Long id, com.example.profis.controller.ThesisController.GradeUpdateRequest request) {
+        try {
+            WissenschaftlicheArbeit existing = thesisRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Thesis not found with id: " + id));
+
+            // Update grades - nur wenn sie gesetzt sind
+            if (request.getNoteArbeitReferent() != null) {
+                existing.setNoteArbeitReferent(BigDecimal.valueOf(request.getNoteArbeitReferent()));
+            }
+            if (request.getNoteArbeitKorreferent() != null) {
+                existing.setNoteArbeitKorreferent(BigDecimal.valueOf(request.getNoteArbeitKorreferent()));
+            }
+            if (request.getNoteKolloquiumReferent() != null) {
+                existing.setNoteKolloquiumReferent(BigDecimal.valueOf(request.getNoteKolloquiumReferent()));
+            }
+            if (request.getNoteKolloquiumKorreferent() != null) {
+                existing.setNoteKolloquiumKorreferent(BigDecimal.valueOf(request.getNoteKolloquiumKorreferent()));
+            }
+
+            WissenschaftlicheArbeit updated = thesisRepository.update(existing);
+            return mapToResponse(updated);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating grades", e);
         }
     }
 
@@ -137,30 +163,30 @@ public class ThesisService {
         response.setId(thesis.getIdWissenschaftlicheArbeiten());
         response.setTitle(thesis.getTitel());
         response.setStudentMatriculationNumber(thesis.getMatrikelnummer());
-        
+
         // Fetch student name
         if (thesis.getMatrikelnummer() != null) {
             studentRepository.findById(thesis.getMatrikelnummer()).ifPresent(student ->
-                response.setStudentName(student.getVorname() + " " + student.getNachname())
+                    response.setStudentName(student.getVorname() + " " + student.getNachname())
             );
         }
-        
+
         // Fetch supervisor info
         response.setSupervisorId(thesis.getIdErstreferent());
         if (thesis.getIdErstreferent() != null) {
             professorRepository.findById(thesis.getIdErstreferent()).ifPresent(supervisor ->
-                response.setSupervisorName(supervisor.getVorname() + " " + supervisor.getNachname())
+                    response.setSupervisorName(supervisor.getVorname() + " " + supervisor.getNachname())
             );
         }
-        
+
         // Fetch co-supervisor info
         response.setCoSupervisorId(thesis.getIdKorreferent());
         if (thesis.getIdKorreferent() != null) {
             professorRepository.findById(thesis.getIdKorreferent()).ifPresent(coSupervisor ->
-                response.setCoSupervisorName(coSupervisor.getVorname() + " " + coSupervisor.getNachname())
+                    response.setCoSupervisorName(coSupervisor.getVorname() + " " + coSupervisor.getNachname())
             );
         }
-        
+
         response.setStartDate(thesis.getStartDatum());
         response.setSubmissionDate(thesis.getAbgabeDatum());
         response.setCorrectionEndDate(thesis.getEndeKorrektur());
@@ -170,14 +196,14 @@ public class ThesisService {
         response.setGradeCoSupervisor(thesis.getNoteArbeitKorreferent());
         response.setGradeColloquiumSupervisor(thesis.getNoteKolloquiumReferent());
         response.setGradeColloquiumCoSupervisor(thesis.getNoteKolloquiumKorreferent());
-        
+
         // Calculate final grade
         response.setFinalGrade(calculateFinalGrade(thesis));
-        
+
         // Determine status and type (simplified logic)
         response.setStatus(determineStatus(thesis));
         response.setType("BACHELOR"); // Default, would need additional logic
-        
+
         return response;
     }
 
@@ -187,16 +213,16 @@ public class ThesisService {
         if (thesis.getNoteArbeitKorreferent() != null) grades.add(thesis.getNoteArbeitKorreferent());
         if (thesis.getNoteKolloquiumReferent() != null) grades.add(thesis.getNoteKolloquiumReferent());
         if (thesis.getNoteKolloquiumKorreferent() != null) grades.add(thesis.getNoteKolloquiumKorreferent());
-        
+
         if (grades.isEmpty()) return null;
-        
+
         BigDecimal sum = grades.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         return sum.divide(BigDecimal.valueOf(grades.size()), 2, RoundingMode.HALF_UP);
     }
 
     private String determineStatus(WissenschaftlicheArbeit thesis) {
         if (thesis.getNoteArbeitReferent() != null && thesis.getNoteArbeitKorreferent() != null &&
-            thesis.getNoteKolloquiumReferent() != null && thesis.getNoteKolloquiumKorreferent() != null) {
+                thesis.getNoteKolloquiumReferent() != null && thesis.getNoteKolloquiumKorreferent() != null) {
             return "COMPLETED";
         } else if (thesis.getAbgabeDatum() != null) {
             return "SUBMITTED";
